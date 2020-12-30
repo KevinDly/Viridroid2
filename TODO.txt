@@ -1,0 +1,10 @@
+1. Setup appropriate credentials for the Discord bot.
+2. Create a parser function to parse commands
+	2a. Allow function creation to be modular and easy. 
+		Some type of key/value pair where value is a function.
+3. Write code for point system.
+	3a. Figure out format of code (how to store points/ how to create json/ etc?)
+	3b. If necessary make point system have a lock of some sort when reading/writing.
+4. Write code for betting system.
+5. Setup AWS
+
