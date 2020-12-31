@@ -19,5 +19,11 @@
   "bugs": {
     "url": "https://github.com/KevinDly/Viridroid2/issues"
   },
-  "homepage": "https://github.com/KevinDly/Viridroid2#readme"
+  "homepage": "https://github.com/KevinDly/Viridroid2#readme",
+  "devDependencies": {
+    "@types/node": "^14.14.17"
+  },
+  "dependencies": {
+    "discord.js": "^12.5.1"
+  }
 }
