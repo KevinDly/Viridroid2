@@ -21,9 +21,11 @@
   },
   "homepage": "https://github.com/KevinDly/Viridroid2#readme",
   "devDependencies": {
-    "@types/node": "^14.14.17"
+    "@types/node": "^14.14.20"
   },
   "dependencies": {
-    "discord.js": "^12.5.1"
+    "async-mutex": "^0.2.6",
+    "discord.js": "^12.5.1",
+    "enmap": "^5.8.2"
   }
 }

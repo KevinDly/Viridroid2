@@ -1,5 +1,5 @@
 // JavaScript source code
-const Constants = require('constants.js');
+const Constants = require('./constants.js');
 
 //Breaks function into a list of tokens.
 function parse(line) {
