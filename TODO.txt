@@ -1,10 +1,14 @@
-1. Setup appropriate credentials for the Discord bot.
-2. Create a parser function to parse commands
-	2a. Allow function creation to be modular and easy. 
-		Some type of key/value pair where value is a function.
-3. Write code for point system.
-	3a. Figure out format of code (how to store points/ how to create json/ etc?)
-	3b. If necessary make point system have a lock of some sort when reading/writing.
-4. Write code for betting system.
-5. Setup AWS
+MAJOR. WRITE TEST FUNCTIONS
 
+1. Optimize Blackjack Function for less lag
+	1a. Fix bugs
+	1b. Replace text names with emojis
+	1c. Fix text flow (more clarity with playing)
+
+2. //LATER Write code for betting system.
+3. Create leaderboard
+4. Write test functions
+
+5. Import code to AWS
+
+6. Give Josh 300 Points

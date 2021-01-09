@@ -14,5 +14,4 @@ function checkPrefix(command) {
 		return false;
 }
 
-
 module.exports = { parse, checkPrefix };

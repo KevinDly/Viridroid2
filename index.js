@@ -3,7 +3,7 @@ const Constants = require('./constants.js')
 const Parse = require('./parser.js')
 const Commands = require('./commands.js')
 const Enmap = require('enmap')
-const fs = require('fs')
+const Util = require('./util.js')
 
 const client = new Discord.Client()
 
@@ -82,7 +82,7 @@ function awardPoints(guild, member, data) {
 			points: 0
 		})
 		console.log("Awarding points")
-		data.math(dataKey, "+", 100, "points")
+		data.math(dataKey, "+", Constants.PERIODIC_POINT_VALUE, "points")
 	}
 }
 
@@ -95,7 +95,7 @@ client.on('ready', async () => {
 	getUserInfo().then(function (result) {
 		setInterval(function () {
 			iterate(result, awardPoints)
-        }, 60000)
+		}, Util.minutesToMili(5))
 	})
 	
 	console.log("Ready")
@@ -104,13 +104,23 @@ client.on('ready', async () => {
 client.on('message', async (msg) => {
 	/*1. Parse msg to check for correctness
 	2. Run command on table of functions*/
+
+	//Check if user is a bot
+	if (msg.member.user.bot)
+		return
+
 	//Parse commands
-	var tokens = Parse.parse(msg.content)
+	var tokens = msg.content.split(" ")
+
+	//Grab the command
 	var command = tokens[0]
-	if (Parse.checkPrefix(tokens[0]) == true) {
+	//Remove the command from the list of tokens
+	tokens.shift()
+
+	//Check if command is valid
+	if (Parse.checkPrefix(command) == true) {
 		command = command.replace(Constants.COMMAND_PREFIX, "")
 		//Check against command list.
-		console.log("User attempted to use command: " + command)
 
 		//Check table of functions
 		try {
