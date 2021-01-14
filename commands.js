@@ -52,7 +52,7 @@ function blackjack(msg, tokens, data) {
 */
 function award(msg, tokens, data) {
     //Check if permissions on user executing command are valid
-    if (!msg.member.id == Constants.DEV_ID) {
+    if (!(msg.member.id == Constants.DEV_ID)) {
         msg.channel.send('Insufficient permissions.')
         return
     }
