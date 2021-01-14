@@ -1,0 +1,13 @@
+{
+	"prefix": "s!",
+	"Points": {
+		"pointsAwarded": 15,
+		"timePerAward": 5
+	},
+	"Games": {
+		"Blackjack": {
+			"emoteWin": "<:YEP:757585880608145419>",
+			"emoteLose": "<:AYAYA:386060819118424064>"
+		}
+	}
+}

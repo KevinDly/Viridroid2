@@ -1,5 +1,5 @@
 // JavaScript source code
-const Constants = require('./constants.js');
+const config = require('config');
 
 //Breaks function into a list of tokens.
 function parse(line) {
@@ -8,7 +8,7 @@ function parse(line) {
 
 //Checks if the command has the correct prefix.
 function checkPrefix(command) {
-	if (command.startsWith(Constants.COMMAND_PREFIX))
+	if (command.startsWith(config.get('prefix')))
 		return true;
 	else
 		return false;

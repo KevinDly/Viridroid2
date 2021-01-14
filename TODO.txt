@@ -5,10 +5,12 @@ MAJOR. WRITE TEST FUNCTIONS
 	1b. Replace text names with emojis
 	1c. Fix text flow (more clarity with playing)
 
-2. //LATER Write code for betting system.
+2. LATER Write code for betting system.
 3. Create leaderboard
 4. Write test functions
 
 5. Import code to AWS
+6. Add help command
+7. Add json config file for easier configuration.
 
-6. Give Josh 300 Points
+8. Give Josh 300 Points

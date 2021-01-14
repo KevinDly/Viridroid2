@@ -4,6 +4,7 @@ const Parse = require('./parser.js')
 const Commands = require('./commands.js')
 const Enmap = require('enmap')
 const Util = require('./util.js')
+const config = require('config')
 
 const client = new Discord.Client()
 
@@ -82,7 +83,7 @@ function awardPoints(guild, member, data) {
 			points: 0
 		})
 		console.log("Awarding points")
-		data.math(dataKey, "+", Constants.PERIODIC_POINT_VALUE, "points")
+		data.math(dataKey, "+", config.get('Points.pointsAwarded'), "points")
 	}
 }
 
@@ -95,7 +96,7 @@ client.on('ready', async () => {
 	getUserInfo().then(function (result) {
 		setInterval(function () {
 			iterate(result, awardPoints)
-		}, Util.minutesToMili(5))
+		}, Util.minutesToMili(config.get('Points.timePerAward')))
 	})
 	
 	console.log("Ready")
@@ -104,7 +105,6 @@ client.on('ready', async () => {
 client.on('message', async (msg) => {
 	/*1. Parse msg to check for correctness
 	2. Run command on table of functions*/
-
 	//Check if user is a bot
 	if (msg.member.user.bot)
 		return
@@ -116,16 +116,16 @@ client.on('message', async (msg) => {
 	var command = tokens[0]
 	//Remove the command from the list of tokens
 	tokens.shift()
-
 	//Check if command is valid
-	if (Parse.checkPrefix(command) == true) {
-		command = command.replace(Constants.COMMAND_PREFIX, "")
-		//Check against command list.
 
+	if (Parse.checkPrefix(command) == true) {
+		command = command.replace(config.get('prefix'), "")
+		//Check against command list.
 		//Check table of functions
 		try {
 			//Commands[command](msg, tokens, data)
 			getUserInfo().then((result) => {
+				console.log("initiating command")
 				Commands[command](msg, tokens, result)
             })
 			console.log(Constants.COMMAND_SUCCESS_MESSAGE)
@@ -134,6 +134,7 @@ client.on('message', async (msg) => {
 			//incorrect command message
 			console.log(err)
 			console.log(Constants.COMMAND_FAILURE_MESSAGE)
+
 		}
 	}
 });
@@ -141,3 +142,5 @@ client.on('message', async (msg) => {
 process.on('exit', () => {
 	client.destroy()
 });
+
+module.exports = { config }

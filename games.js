@@ -1,6 +1,8 @@
 // JavaScript source code
 const Util = require("./util.js");
 const Constants = require("./constants.js")
+const config = require("config")
+
 const number = {
     1: "Ace",
     2: "Two",
@@ -152,6 +154,7 @@ function blackjackLoop(msg, cards, buyIn, data, playerHand, houseHand, playerWin
     var playerStay = playerStay
     var houseStay = houseStay
 
+    //TODO: Change this to some other variable name later
     var message;
     if (playerStay == true) {
         message = "You stayed last round."
@@ -172,11 +175,11 @@ function blackjackLoop(msg, cards, buyIn, data, playerHand, houseHand, playerWin
 
     //If player won off first hand
     if (handAsValue(playerHand) == 21) {
-        message.channel.send(`${author} won ${buyIn} points! ${Constants.EMOTE_YEP}`)
+        msg.channel.send(`${author} won ${buyIn} points! ${ config.get('Games.Blackjack.emoteWin') }`)
         data.math(dataKey, "+", buyIn, "points")
     }
     else if (handAsValue(houseHand) == 21) {
-        message.channel.send(`${author} lost ${buyIn} points! ${Constants.EMOTE_YEP}`)
+        msg.channel.send(`${author} lost ${buyIn} points! ${config.get('Games.Blackjack.emoteLose') }`)
         data.math(dataKey, "-", buyIn, "points")
     }
     else if (playerStay == false) {
@@ -285,11 +288,11 @@ function winnerCheck(message, playerHandValue, playerHand, houseHand, playerBust
 
     //Add or subtract appropriate amount of points from player
     if (playerWin == true) {
-        message.channel.send(`${author} won ${buyIn} points! ${ Constants.EMOTE_YEP }`)
+        message.channel.send(`${author} won ${buyIn} points! ${ config.get('Games.Blackjack.emoteWin') }`)
         data.math(dataKey, "+", buyIn, "points")
     }
     else if (houseWin == true) {
-        message.channel.send(`${author} lost ${buyIn} points! ${ Constants.EMOTE_AYAYA }`)
+        message.channel.send(`${author} lost ${buyIn} points! ${ config.get('Games.Blackjack.emoteLose') }`)
         data.math(dataKey, "-", buyIn, "points")
     }
     return { playerHandValue, houseWin, playerWin };

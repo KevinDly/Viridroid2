@@ -1,0 +1,8 @@
+Pre-AWS Version 1:
+Added configuration file for easy configuration of values
+Added command to award points to users (Only usable by dev)
+
+Current Issues:
+Blackjack:
+After prompting user to "hit or stay", bot takes awhile for logic resolve.
+On opponents turn in general, logic takes a while.
