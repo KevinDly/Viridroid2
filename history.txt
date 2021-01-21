@@ -1,3 +1,13 @@
+1.1.0
+Added an s!help command
+Fixed an issue where the player's hand would not be displayed.
+Fixed an issue where the player may enter words other than HIT or STAY for the blackjack bot.
+
+1.0.0
+Put Bot on AWS
+Added Blackjack Command
+
+
 Pre-AWS Version 1:
 Added configuration file for easy configuration of values
 Added command to award points to users (Only usable by dev)

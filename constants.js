@@ -1,5 +1,5 @@
 module.exports = {
-    LOGIN_TOKEN: "MjY1MjQwMjc2MTI0MTcyMjkw.WGl-QQ.qmA_GrDh_z_iwRXyqpdi5k4zDRo",
+    LOGIN_TOKEN: "Nzk5OTE5MzY4MzgxMDA1ODI2.YAKk9w.Bi61pUCtW9XUZKvM2VgZ-ln4mbA",
     COMMAND_SUCCESS_MESSAGE: "Command executed successfully.",
     COMMAND_FAILURE_MESSAGE: "Command does not exist!",
     USERDATA_IDENTIFICATION: "${guildID}-${memberID}",

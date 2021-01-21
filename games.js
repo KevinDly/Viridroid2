@@ -171,7 +171,7 @@ function blackjackLoop(msg, cards, buyIn, data, playerHand, houseHand, playerWin
     var houseBust = false
     var author = msg.author.toString()
 
-    let filter = m => m.author.id === msg.author.id
+    let filter = m => ((m.author.id === msg.author.id) && (m.content.toUpperCase() == "HIT" || m.content.toUpperCase() == "STAY"))
 
     //If player won off first hand
     if (handAsValue(playerHand) == 21) {
@@ -221,7 +221,7 @@ function blackjackLoop(msg, cards, buyIn, data, playerHand, houseHand, playerWin
                     }
                 })
                 .catch(collected => {
-                    msg.channel.send("Game canceled.")
+                    msg.channel.send("Game timed out!")
                     console.log(collected)
                 });
 
@@ -244,7 +244,7 @@ function blackjackLoop(msg, cards, buyIn, data, playerHand, houseHand, playerWin
             msg.channel.send("END OF TURN")
             msg.channel.send("----------------------------------------------------------------------------------------------")
             msg.channel.send("You have: " + handAsString(playerHand))
-            msg.channel.send(`${ author }'s card's value: $ { handAsValue(playerHand) }`)
+            msg.channel.send(`${ author }'s card's value: ${ handAsValue(playerHand) }`)
             msg.channel.send("Your opponent has: " + houseHand[0][1] + " and " + (houseHand.length - 1) + " cards")
                 .then(() => {
                     blackjackLoop(msg, cards, buyIn, data, playerHand, houseHand, playerWin, houseWin, playerStay, houseStay)

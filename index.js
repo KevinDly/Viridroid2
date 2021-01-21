@@ -12,7 +12,6 @@ const client = new Discord.Client()
 //TODO: Create scheduler to schedule periodic point updates.
 //TODO: Get collection of all guilds
 
-
 //Create function to get the userEnmapInfo
 client.isLoaded = false
 

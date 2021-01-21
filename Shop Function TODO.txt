@@ -1,0 +1,8 @@
+Shop Feature
+	Allows user to buy waifus?
+	Todo:
+	Add backend for reply reactions
+	Add unifying function for point addition/deduction
+	Add json files for waifu information
+	Add command to view waifus
+	Add command to view shop

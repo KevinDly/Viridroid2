@@ -1,0 +1,29 @@
+{
+  "Commands": {
+    "help": {
+      "format": "s!help [Optional: CommandName] [Optional: \"detailed\"]",
+      "description": "Brings up this message.",
+      "detailed": [ "Brings up a list of commands available if s!help is used.\n",
+                    "If the optional arguments commandname and detailed are used\n",
+                    "then a detailed description will appear for the command, such as\n",
+                    "this one.\n",
+                    "example: \"s!help help detailed\" will bring up this message!" ]
+    },
+    "points": {
+      "format": "s!points",
+      "description": "Sends you a message with your amount of points",
+      "detailed":  ["Tells you the amount of points you have on the current server."]
+    },
+    "blackjack": {
+      "format": "s!blackjack [Required: Amount]",
+      "description": "Plays a game of blackjack!",
+      "detailed": [ "Allows you to start a game of blackjack!\n",
+                    "The amount is the amount staked in the game\n",
+                    "Upon winning your amount is doubled, otherwise its the amount subtracted.\n",
+                    "When starting, you may either choose HIT or STAY\n",
+                    "You have one minute to choose before the game times out.\n",
+                    "If you choose HIT, and get an additional card until you STAY.\n",
+                    "If you or the house goes over a total value of 21, then the game ends." ]
+    }
+  }
+}
