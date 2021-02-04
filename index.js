@@ -125,10 +125,13 @@ client.on('message', async (msg) => {
 		command = command.replace(config.get('prefix'), "")
 		//Check against command list.
 		//Check table of functions
+
 		try {
 			//Commands[command](msg, tokens, data)
 			getUserInfo().then((result) => {
-				console.log("initiating command")
+				console.log("initiating command: " + command)
+				if(tokens.length >= 1)
+					console.log("With Parameter: " + tokens[0])
 				Commands[command](msg, tokens, result)
             })
 			console.log(Constants.COMMAND_SUCCESS_MESSAGE)

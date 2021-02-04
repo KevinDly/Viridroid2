@@ -1,3 +1,6 @@
+1.2.1
+Fixed bug where Blackjack would stop working after all cards were used up.
+
 1.2.0
 Updated blackjack with new interface.
 Updated internal token verification.

@@ -132,8 +132,10 @@ function handAsValue(hand) {
 //TODO Change Strings to emotes.
 function newBlackjack(msg, buyIn, data) {
 
-    var cards = CardConstants.cards
+    //Create deep copy of the deck.
+    var cards = JSON.parse(JSON.stringify(CardConstants.cards))
 
+    console.log(cards.length)
     var playerHand = []
     var houseHand = []
 
@@ -159,6 +161,11 @@ function newBlackjack(msg, buyIn, data) {
             else
                 houseHand.push(card)
         }
+
+/*    console.log("House's Hand")
+    console.log(houseHand)
+    console.log("Player's Hand")
+    console.log(playerHand)*/
 
     var gameEmbed = new MessageEmbed()
         .setTitle("Blackjack")
@@ -206,7 +213,7 @@ async function newBlackjackLoop(dataKey, buyIn, data, houseHand, playerHand, car
     else if (houseValue == 21 || playerValue > 21) {
         //If house got 21 immediately or if player busted.
         var newEmbed = new MessageEmbed(gameEmbed)
-            .setDescription(`You lost. Subtracting ${buyIn} to your account. ${config.get('Games.Blackjack.emoteLose')}`);
+            .setDescription(`You lost. Subtracting ${buyIn} from your account. ${config.get('Games.Blackjack.emoteLose')}`);
         newEmbed.fields.find(f => f.name === houseKey).value = handAsEmotes(houseHand)
         newEmbed.fields.find(f => f.name === houseValueKey).value = houseValue
         embedMessage.edit(newEmbed)
@@ -224,7 +231,7 @@ async function newBlackjackLoop(dataKey, buyIn, data, houseHand, playerHand, car
         }
         else {
             var newEmbed = new MessageEmbed(gameEmbed)
-                .setDescription(`You lost. Subtracting ${buyIn} to your account. ${config.get('Games.Blackjack.emoteLose')}`);
+                .setDescription(`You lost. Subtracting ${buyIn} from your account. ${config.get('Games.Blackjack.emoteLose')}`);
             embedMessage.edit(newEmbed)
             data.math(dataKey, "-", buyIn, "points")
             return
