@@ -5,6 +5,10 @@ const Commands = require('./commands.js')
 const Enmap = require('enmap')
 const Util = require('./util.js')
 const config = require('config')
+const fs = require('fs')
+
+let tokendata = fs.readFileSync('./config/token.json')
+let token = JSON.parse(tokendata).token
 
 const client = new Discord.Client()
 
@@ -86,7 +90,7 @@ function awardPoints(guild, member, data) {
 	}
 }
 
-client.login(Constants.LOGIN_TOKEN)
+client.login(token)
 
 client.on('ready', async () => {
 	//Iterate through all servers and users and check client.points.

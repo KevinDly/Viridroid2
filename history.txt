@@ -1,3 +1,7 @@
+1.2.0
+Updated blackjack with new interface.
+Updated internal token verification.
+
 1.1.0
 Added an s!help command
 Fixed an issue where the player's hand would not be displayed.

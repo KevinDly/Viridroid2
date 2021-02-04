@@ -47,7 +47,7 @@ function blackjack(msg, tokens, data) {
         if (points < buyIn)
             msg.channel.send("Invalid amount of points!")
         else
-            Games.blackjack(msg, buyIn, data)
+            Games.newBlackjack(msg, buyIn, data)
     }
 }
 

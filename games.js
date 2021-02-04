@@ -1,7 +1,17 @@
-// JavaScript source code
+﻿// JavaScript source code
 const Util = require("./util.js");
 const Constants = require("./constants.js")
 const config = require("config")
+const CardConstants = require('./cardconstants.js')
+const { MessageEmbed }  = require("discord.js")
+const { minutesToMili } = require("./util.js")
+
+const HIT = config.get('Games.Blackjack.hit')
+const STAY = config.get('Games.Blackjack.stay')
+
+//TODO: Grab these from code automatically
+const HIT_ID = config.get('Games.Blackjack.hit_id')
+const STAY_ID = config.get('Games.Blackjack.stay_id')
 
 const number = {
     1: "Ace",
@@ -51,9 +61,27 @@ function handAsString(hand) {
     return handString
 }
 
+/*Uses JSON Representation of Cards
+ * REQUIRED: Json objects needs an emote tag.
+*/
+function handAsEmotes(hand) {
+    var handString = hand[0].emote
+
+    var firstCard = true
+    hand.forEach(card => {
+        if (firstCard) {
+            firstCard = false
+        }
+        else {
+            handString = handString + " " + card.emote
+        }
+    })
+
+    return handString
+}
 //Returns value of the hand
-//TODO: Make the function more efficient
-function handAsValue(hand) {
+//Deprecated: Doesn't use JSON Representation of Cards
+function oldHandAsValue(hand) {
     var total = 0
     var totalAces = 0
 
@@ -76,6 +104,216 @@ function handAsValue(hand) {
 
     return total
 }
+
+/*Uses JSON Representation of Cards
+ * REQUIRED: Json objects needs a value tag.
+*/
+function handAsValue(hand) {
+    var total = 0
+    var totalAces = 0
+    hand.forEach(card => {
+        var value = card.value
+        if (value == 1) {
+            totalAces++
+            value = 0;
+        }
+        total = total + value
+    })
+
+    for (i = 0; i < totalAces; i++) {
+        if ((total + 11) <= 21)
+            total = total + 11
+        else
+            total = total + 1
+    }
+
+    return total
+}
+//TODO Change Strings to emotes.
+function newBlackjack(msg, buyIn, data) {
+
+    var cards = CardConstants.cards
+
+    var playerHand = []
+    var houseHand = []
+
+    var houseKey = "The House"
+    var houseValueKey = "House's Value"
+    var authorKey = msg.author.username
+    var authorValueKey = msg.author.username + "'s Value"
+
+    var guildID = msg.guild.id;
+    var memberID = msg.member.id;
+    var dataKey = `${guildID} - ${memberID}`;
+
+    //Distribute cards to player
+    for (i = 0; i < 2; i++)
+        //Add card to player hand first then house hand
+        for (j = 0; j < 2; j++) {
+            var cardIndex = Util.randomInRange(0, cards.length)
+            //console.log(cards)
+            var card = cards.splice(cardIndex, 1)[0]
+            //console.log(card)
+            if (j == 0)
+                playerHand.push(card)
+            else
+                houseHand.push(card)
+        }
+
+    var gameEmbed = new MessageEmbed()
+        .setTitle("Blackjack")
+        .setDescription(authorKey + "'s turn")
+        .addFields(
+            { name: houseKey, value: houseHand[0].emote + " and 1 Other Card", inline: true },
+            { name: houseValueKey, value: "???", inline: true },
+            { name: '\u200B', value: '\u200B' },
+            { name: authorKey, value: handAsEmotes(playerHand), inline: true },
+            { name: authorValueKey, value: handAsValue(playerHand), inline: true }
+        )
+        .setThumbnail("https://i.imgur.com/vuljj6c.png")
+        .setColor("RANDOM");
+
+    //Starts the game.
+    msg.channel.send(gameEmbed).then(message => newBlackjackLoop(dataKey, buyIn, data, houseHand, playerHand, cards, msg, message, gameEmbed, false, false) )
+
+}
+
+//TODO: HIDE HOUSE VALUES UNTIL PLAYER'S TURN IS DONE/REVEAL VALUES IF PLAYER BUSTED
+async function newBlackjackLoop(dataKey, buyIn, data, houseHand, playerHand, cards, realMessage, embedMessage, gameEmbed, playerStay, houseStay) {
+
+    //Sleep 1 second
+    var houseKey = "The House"
+    var houseValueKey = "House's Value"
+
+    var authorKey = realMessage.author.username
+    var authorValueKey = realMessage.author.username + "'s Value"
+
+    var playerValue = gameEmbed.fields.find(f => f.name === authorValueKey).value
+    var embedHouseValue = gameEmbed.fields.find(f => f.name === houseValueKey).value
+    var houseValue = (embedHouseValue === "???") ? handAsValue(houseHand) : embedHouseValue
+
+    //Win or loss check for each turn
+    if (playerValue == 21 || houseValue > 21) {
+        //If player got 21 immediately or if house busted.
+        var newEmbed = new MessageEmbed(gameEmbed)
+            .setDescription(`You won! Adding ${buyIn} to your account! ${config.get('Games.Blackjack.emoteWin')}`);
+        newEmbed.fields.find(f => f.name === houseKey).value = handAsEmotes(houseHand)
+        newEmbed.fields.find(f => f.name === houseValueKey).value = houseValue
+        embedMessage.edit(newEmbed)
+        data.math(dataKey, "+", buyIn, "points")
+        return
+    }
+    else if (houseValue == 21 || playerValue > 21) {
+        //If house got 21 immediately or if player busted.
+        var newEmbed = new MessageEmbed(gameEmbed)
+            .setDescription(`You lost. Subtracting ${buyIn} to your account. ${config.get('Games.Blackjack.emoteLose')}`);
+        newEmbed.fields.find(f => f.name === houseKey).value = handAsEmotes(houseHand)
+        newEmbed.fields.find(f => f.name === houseValueKey).value = houseValue
+        embedMessage.edit(newEmbed)
+        data.math(dataKey, "-", buyIn, "points")
+        return
+    }
+    else if (houseStay == true && playerStay == true) {
+        //If both stayed and neither busted/got 21
+        if (playerValue > houseValue) {
+            var newEmbed = new MessageEmbed(gameEmbed)
+                .setDescription(`You won! Adding ${buyIn} to your account! ${config.get('Games.Blackjack.emoteWin')}`);
+            embedMessage.edit(newEmbed)
+            data.math(dataKey, "+", buyIn, "points")
+            return
+        }
+        else {
+            var newEmbed = new MessageEmbed(gameEmbed)
+                .setDescription(`You lost. Subtracting ${buyIn} to your account. ${config.get('Games.Blackjack.emoteLose')}`);
+            embedMessage.edit(newEmbed)
+            data.math(dataKey, "-", buyIn, "points")
+            return
+        }
+    }
+
+    //TODO: Make bot pause
+    if (playerStay) {
+        if (houseValue < 16) {
+            //Draw Card
+            var cardIndex = Util.randomInRange(0, cards.length);
+            var card = cards.splice(cardIndex, 1)[0]
+
+            //Push Card into hand and update values
+            houseHand.push(card);
+            var houseHandValue = handAsValue(houseHand);
+
+            //Create new Embed and Edit it
+            var newEmbed = new MessageEmbed(gameEmbed)
+            newEmbed.fields.find(f => f.name === houseKey).value = handAsEmotes(houseHand)
+            newEmbed.fields.find(f => f.name === houseValueKey).value = houseHandValue
+            embedMessage.edit(newEmbed).then(() =>
+                setTimeout(() => { newBlackjackLoop(dataKey, buyIn, data, houseHand, playerHand, cards, realMessage, embedMessage, newEmbed, playerStay, false) },
+                    Constants.TIME_BETWEEN_CARD_DRAW));
+        }
+        else {
+            var newEmbed = new MessageEmbed(gameEmbed)
+                            .setDescription("House stayed, checking who won!")
+            embedMessage.edit(newEmbed).then(() =>
+                setTimeout(() => { newBlackjackLoop(dataKey, buyIn, data, houseHand, playerHand, cards, realMessage, embedMessage, newEmbed, playerStay, true) },
+                    Constants.TIME_BETWEEN_CARD_DRAW));
+        }
+    }
+    else {
+        //Replace emojis with Hit or Stay
+        //This is the player's turn
+        await embedMessage.react(HIT)
+        await embedMessage.react(STAY)
+
+        let filter = (reaction, user) => {
+            return [HIT_ID, STAY_ID].includes(reaction.emoji.id) && (user.id === realMessage.author.id)
+        }
+
+        embedMessage.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] })
+            .then(collected => {
+                //Put game logic here
+
+                //Delete the reactions
+                embedMessage.reactions.removeAll().catch(error => console.error('Could not remove reactions: ', error))
+
+                //Check what reaction the user made.
+                const reaction = collected.first()
+                //True is stay, false is hit
+                //Might want to change this to something easily identifiable
+
+                if (reaction.emoji.name === "STAY") {
+                    //Update the message to house's turn
+                    //console.log("In stay")
+                    var newEmbed = new MessageEmbed(gameEmbed)
+                    //console.log("newEmbed before desc: " + newEmbed.toJSON())
+                    newEmbed = newEmbed.setDescription("House's Turn")
+                    //console.log("newEmbed before find: " + newEmbed.toJSON())
+                    newEmbed.fields.find(f => f.name === houseKey).value = handAsEmotes(houseHand)
+                    newEmbed.fields.find(f => f.name === houseValueKey).value = houseValue
+                    embedMessage.edit(newEmbed).then(() => {
+                        newBlackjackLoop(dataKey, buyIn, data, houseHand, playerHand, cards, realMessage, embedMessage, newEmbed, true, false)
+                    })
+  
+                    //Add call to function again
+                }
+                else {
+                    var cardIndex = Util.randomInRange(0, cards.length);
+                    var card = cards.splice(cardIndex, 1)[0]
+                    playerHand.push(card);
+                    var playerHandValue = handAsValue(playerHand);
+                    var newEmbed = new MessageEmbed(gameEmbed)
+                    newEmbed.fields.find(f => f.name === authorKey).value = handAsEmotes(playerHand)
+                    newEmbed.fields.find(f => f.name === authorValueKey).value = playerHandValue
+
+                    embedMessage.edit(newEmbed).then(() => 
+                        newBlackjackLoop(dataKey, buyIn, data, houseHand, playerHand, cards, realMessage, embedMessage, newEmbed, false, false))
+                }
+            })
+            .catch(collected => {
+                //Put error logic here
+            });
+    }
+}
+
 //TODO: Preprocess card array somewhere else.
 function blackjack(msg, buyIn, data) {
     var cards = []
@@ -355,4 +593,4 @@ function playerTurn(playerHand, playerStay, playerWin, message, cards, playerBus
     return { cardIndex, playerHandValue, playerStay, playerWin, playerBust };
 }
 
-module.exports = { blackjack }
+module.exports = { blackjack, newBlackjack }
