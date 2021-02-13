@@ -11,7 +11,9 @@ module.exports =
     blackjack: function (msg, tokens, data) { blackjack(msg, tokens, data) },
     award: function (msg, tokens, data) { award(msg, tokens, data) },
     help: function (msg, tokens, data) { help(msg, tokens, data) },
-    version: function (msg, tokens, data) { version(msg, tokens, data) }
+    version: function (msg, tokens, data) { version(msg, tokens, data) },
+    poll: function (msg, tokens, data) { poll(msg, tokens, data) },
+    profile: function (msg, tokens, data) { }
 }
 
 /*s!points
@@ -126,6 +128,31 @@ function help(msg, tokens, data) {
     else {
          msg.channel.send("Incorrect format format is \n" + config.get('Commands.help.format'))
     }
+}
+
+function poll(msg, tokens, data) {
+    var embed = new Discord.MessageEmbed()
+
+    if (tokens.length < 3) {
+        msg.channel.send("More than 1 answer required.")
+    }
+    //Should store pairs with the name and the amount voted.
+
+    var pollUpdate = []
+    for (var token in tokens) {
+        var word = tokens[token]
+        if (token == 0) 
+            embed.setDescription(word)
+        else 
+            //todo add field for choice
+            embed.addField()
+        
+    }
+}
+
+function profile(msg, tokens, data) {
+    var datakey = getDataKey(msg)
+    var embed = new MessageEmbed()
 }
 
 function getDataKey(msg) {

@@ -120,11 +120,18 @@ function handAsValue(hand) {
         total = total + value
     })
 
+    console.log("Total Type: " + (typeof total))
+    console.log("Total: " + total)
+    console.log("Total Aces: " + totalAces)
     for (i = 0; i < totalAces; i++) {
-        if ((total + 11) <= 21)
+        if ((total + 11) <= 21) {
+            console.log("Was < 21 " + total)
             total = total + 11
-        else
+        }
+        else {
+            console.log("Was > 21 " + total)
             total = total + 1
+        }
     }
 
     return total
@@ -162,11 +169,6 @@ function newBlackjack(msg, buyIn, data) {
                 houseHand.push(card)
         }
 
-/*    console.log("House's Hand")
-    console.log(houseHand)
-    console.log("Player's Hand")
-    console.log(playerHand)*/
-
     var gameEmbed = new MessageEmbed()
         .setTitle("Blackjack")
         .setDescription(authorKey + "'s turn")
@@ -195,13 +197,20 @@ async function newBlackjackLoop(dataKey, buyIn, data, houseHand, playerHand, car
     var authorKey = realMessage.author.username
     var authorValueKey = realMessage.author.username + "'s Value"
 
-    var playerValue = gameEmbed.fields.find(f => f.name === authorValueKey).value
+    var playerValue = parseInt(gameEmbed.fields.find(f => f.name === authorValueKey).value)
     var embedHouseValue = gameEmbed.fields.find(f => f.name === houseValueKey).value
-    var houseValue = (embedHouseValue === "???") ? handAsValue(houseHand) : embedHouseValue
+    console.log("Embed house value: " + embedHouseValue)
+    console.log("Embed type: " + (typeof embedHouseValue))
+    var houseValue = (embedHouseValue === "???") ? handAsValue(houseHand) : parseInt(embedHouseValue)
 
+    console.log("house value: " + houseValue)
+    console.log("House Value Type: " + (typeof houseValue))
+    console.log("player value: " + playerValue)
+    console.log("Player Value Type: " + (typeof playerValue))
     //Win or loss check for each turn
     if (playerValue == 21 || houseValue > 21) {
         //If player got 21 immediately or if house busted.
+        console.log("Player got 21 immediately or house busted.")
         var newEmbed = new MessageEmbed(gameEmbed)
             .setDescription(`You won! Adding ${buyIn} to your account! ${config.get('Games.Blackjack.emoteWin')}`);
         newEmbed.fields.find(f => f.name === houseKey).value = handAsEmotes(houseHand)
@@ -212,6 +221,7 @@ async function newBlackjackLoop(dataKey, buyIn, data, houseHand, playerHand, car
     }
     else if (houseValue == 21 || playerValue > 21) {
         //If house got 21 immediately or if player busted.
+        console.log("House got 21 immediately or player busted.")
         var newEmbed = new MessageEmbed(gameEmbed)
             .setDescription(`You lost. Subtracting ${buyIn} from your account. ${config.get('Games.Blackjack.emoteLose')}`);
         newEmbed.fields.find(f => f.name === houseKey).value = handAsEmotes(houseHand)
@@ -222,7 +232,14 @@ async function newBlackjackLoop(dataKey, buyIn, data, houseHand, playerHand, car
     }
     else if (houseStay == true && playerStay == true) {
         //If both stayed and neither busted/got 21
+        console.log("Both stayed")
+        console.log("Player > house? " + (playerValue > houseValue))
+        console.log("Player Value Again: " + playerValue)
+        console.log("Player Type Again: " + (typeof playerValue))
+        console.log("House Value Again: " + houseValue)
+        console.log("house type again: " + (typeof houseValue))
         if (playerValue > houseValue) {
+            console.log("Player won")
             var newEmbed = new MessageEmbed(gameEmbed)
                 .setDescription(`You won! Adding ${buyIn} to your account! ${config.get('Games.Blackjack.emoteWin')}`);
             embedMessage.edit(newEmbed)
@@ -230,6 +247,7 @@ async function newBlackjackLoop(dataKey, buyIn, data, houseHand, playerHand, car
             return
         }
         else {
+            console.log("House won")
             var newEmbed = new MessageEmbed(gameEmbed)
                 .setDescription(`You lost. Subtracting ${buyIn} from your account. ${config.get('Games.Blackjack.emoteLose')}`);
             embedMessage.edit(newEmbed)
@@ -247,6 +265,7 @@ async function newBlackjackLoop(dataKey, buyIn, data, houseHand, playerHand, car
 
             //Push Card into hand and update values
             houseHand.push(card);
+            console.log("House card: " + card)
             var houseHandValue = handAsValue(houseHand);
 
             //Create new Embed and Edit it

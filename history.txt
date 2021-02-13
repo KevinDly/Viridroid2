@@ -1,3 +1,8 @@
+1.3.0
+Changed internally how commands are parsed.
+Fixed bug where values <10 would automatically win against values >10
+Fixed internal promise rejection not catching when non-existing command was input.
+
 1.2.1
 Fixed bug where Blackjack would stop working after all cards were used up.
 
@@ -14,11 +19,9 @@ Fixed an issue where the player may enter words other than HIT or STAY for the b
 Put Bot on AWS
 Added Blackjack Command
 
-
 Pre-AWS Version 1:
 Added configuration file for easy configuration of values
 Added command to award points to users (Only usable by dev)
 
-Current Issues:
-Blackjack:
-On opponents turn in general, logic takes a while.
+TODO:
+Bug when Aces are used doesnt always calculate correct value.

@@ -117,23 +117,25 @@ client.on('message', async (msg) => {
 
 	//Grab the command
 	var command = tokens[0]
+
 	//Remove the command from the list of tokens
 	tokens.shift()
-	//Check if command is valid
 
+	//Check if command is valid
 	if (Parse.checkPrefix(command) == true) {
 		command = command.replace(config.get('prefix'), "")
+		tokens = Parse.parse(tokens)
 		//Check against command list.
 		//Check table of functions
 
 		try {
 			//Commands[command](msg, tokens, data)
 			getUserInfo().then((result) => {
-				console.log("initiating command: " + command)
+				console.log("Initiating command: " + command)
 				if(tokens.length >= 1)
-					console.log("With Parameter: " + tokens[0])
+					console.log("With Parameter(s): " + tokens)
 				Commands[command](msg, tokens, result)
-            })
+            }).catch((error) => console.log(error))
 			console.log(Constants.COMMAND_SUCCESS_MESSAGE)
 		}
 		catch (err) {

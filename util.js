@@ -10,4 +10,8 @@ function minutesToMili(minutes) {
 function randomInRange(min, max) {
     return Math.random() * (max - min) + min
 }
+
+function getDataKey(msg) {
+
+}
 module.exports = { minutesToMili, randomInRange };
