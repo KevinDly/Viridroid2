@@ -133,21 +133,86 @@ function help(msg, tokens, data) {
 function poll(msg, tokens, data) {
     var embed = new Discord.MessageEmbed()
 
-    if (tokens.length < 3) {
+    const maxChoices = 4
+    if(tokens.length < 3) {
         msg.channel.send("More than 1 answer required.")
+        return
+    }
+    if (tokens.length > (maxChoices + 1)) {
+        msg.channel.send(`Reached max choice limit, max choices: ${maxChoices}`)
+        return
     }
     //Should store pairs with the name and the amount voted.
 
-    var pollUpdate = []
+    embed.setDescription("Number of Votes: 0")
+
+    var pollUpdate = {}
+
+    var index = 0
+
     for (var token in tokens) {
         var word = tokens[token]
-        if (token == 0) 
-            embed.setDescription(word)
-        else 
-            //todo add field for choice
-            embed.addField()
-        
+        if (token == 0)
+            embed.setTitle(word)
+        else {
+            //Add the option to the embed
+            var optionLetter = String.fromCharCode(127462 + index)
+            var emojiName = `${optionLetter}:`
+            index = index + 1
+
+            //Add fields that will be displayed.
+            embed.addFields(
+                { name: '\u200B', value: word, inline: true},
+                { emote: emojiName, name: '0%', value: '\u200B', inline: true },
+                { name: '\u200B', value: '\u200B'}
+            )
+
+            //Initialize amount of votes each option has.
+            pollUpdate[emojiName] = 0
+        }
     }
+    
+    //React to message with appropriate keys.
+    msg.channel.send(embed).then((sentMessage) => {
+      
+        Object.keys(pollUpdate).forEach(async (key) => {
+            console.log(`The key is ${ key }`)
+            //var reactedEmoji = sentMessage.guild.emojis.cache.find(emoji => emoji.name === key)
+            await sentMessage.react(key)
+        })
+
+        var alreadyReacted = []
+
+        let filter = (reaction, user) => {
+            return Object.keys(pollUpdate).includes(reaction.emoji.name) && !alreadyReacted.includes(user.id)
+        }
+
+        //Await reactions and update embed.
+        const collector = sentMessage.createReactionCollector(filter, { time: 60000, dispose: true })
+
+        //Activate modification of embed if reaction is correct.
+        collector.on('collect', (reaction, user) => {
+            const emojiName = reaction.emoji.name
+            const userID = user.id
+            var newEmbed = new Discord.MessageEmbed(embed)
+            console.log(`Emoji name on collect is: ${ emojiName }`)
+            pollUpdate[emojiName]++
+
+            alreadyReacted.push(userID)
+
+            newEmbed.setDescription(`Number of Votes: ${pollUpdate.length}`)
+            var field = newEmbed.fields.find(f => f.emote === emojiName)
+            field.name = `${ (pollUpdate[emojiName]/pollUpdate.length)*100 }%`
+        })
+
+        collector.on('dispose', (reaction, user) => {
+            //Put code for removed reaction here.
+        })
+
+        collector.on('end', (collected, reason) => {
+            //Put code for finishing poll here.
+        })
+    });
 }
 
 function profile(msg, tokens, data) {

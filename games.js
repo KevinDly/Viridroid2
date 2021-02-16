@@ -4,7 +4,6 @@ const Constants = require("./constants.js")
 const config = require("config")
 const CardConstants = require('./cardconstants.js')
 const { MessageEmbed }  = require("discord.js")
-const { minutesToMili } = require("./util.js")
 
 const HIT = config.get('Games.Blackjack.hit')
 const STAY = config.get('Games.Blackjack.stay')

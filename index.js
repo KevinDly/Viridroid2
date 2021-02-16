@@ -1,4 +1,4 @@
-const Discord = require('discord.js')
+﻿const Discord = require('discord.js')
 const Constants = require('./constants.js')
 const Parse = require('./parser.js')
 const Commands = require('./commands.js')

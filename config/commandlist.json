@@ -24,6 +24,11 @@
                     "You have one minute to choose before the game times out.\n",
                     "If you choose HIT, and get an additional card until you STAY.\n",
                     "If you or the house goes over a total value of 21, then the game ends." ]
+    },
+    "poll": {
+      "format": "Add format",
+      "description": "Add description",
+      "detailed": []
     }
   }
 }
