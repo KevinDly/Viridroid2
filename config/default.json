@@ -5,6 +5,10 @@
 		"pointsAwarded": 15,
 		"timePerAward": 5
 	},
+	"CommandAssets": {
+		"barFull": "<:BLUESQUAREFULL:811756284385951754>",
+		"barEmpty": "<:PURPLESQUAREEMPTY:811756296939372584>"
+	},
 	"Games": {
 		"Blackjack": {
 			"emoteWin": "<:YEP:806757305512099852>",

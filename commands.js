@@ -133,6 +133,8 @@ function help(msg, tokens, data) {
 function poll(msg, tokens, data) {
     var embed = new Discord.MessageEmbed()
 
+    //Check if amount of choices are valid.
+    //Arbitrarily 4 for now.
     const maxChoices = 4
     if(tokens.length < 3) {
         msg.channel.send("More than 1 answer required.")
@@ -142,13 +144,18 @@ function poll(msg, tokens, data) {
         msg.channel.send(`Reached max choice limit, max choices: ${maxChoices}`)
         return
     }
-    //Should store pairs with the name and the amount voted.
 
+
+    //Should store pairs with the name and the amount voted.
     embed.setDescription("Number of Votes: 0")
+    embed.setThumbnail(Constants.POLL_EMBED_IMAGE)
 
     var pollUpdate = {}
-
+    var idReaction = {}
     var index = 0
+
+    const UTF16_BASE_1 = 55356
+    const UTF16_BASE_2 = 56806
 
     for (var token in tokens) {
         var word = tokens[token]
@@ -156,19 +163,19 @@ function poll(msg, tokens, data) {
             embed.setTitle(word)
         else {
             //Add the option to the embed
-            var optionLetter = String.fromCharCode(127462 + index)
-            var emojiName = `${optionLetter}:`
+            var optionLetter = String.fromCharCode(UTF16_BASE_1, UTF16_BASE_2 + index)
+            //var emojiName = `${optionLetter}`
             index = index + 1
 
             //Add fields that will be displayed.
             embed.addFields(
-                { name: '\u200B', value: word, inline: true},
-                { emote: emojiName, name: '0%', value: '\u200B', inline: true },
+                { name: '\u200B', value: `${ optionLetter } ${ word }`, inline: true },
+                { name: optionLetter, value: `0% \t\t\t ${createPercentageBar(0)}`, inline: true },
                 { name: '\u200B', value: '\u200B'}
             )
 
             //Initialize amount of votes each option has.
-            pollUpdate[emojiName] = 0
+            pollUpdate[optionLetter] = 0
         }
     }
     
@@ -176,7 +183,6 @@ function poll(msg, tokens, data) {
     msg.channel.send(embed).then((sentMessage) => {
       
         Object.keys(pollUpdate).forEach(async (key) => {
-            console.log(`The key is ${ key }`)
             //var reactedEmoji = sentMessage.guild.emojis.cache.find(emoji => emoji.name === key)
             await sentMessage.react(key)
         })
@@ -184,35 +190,106 @@ function poll(msg, tokens, data) {
         var alreadyReacted = []
 
         let filter = (reaction, user) => {
-            return Object.keys(pollUpdate).includes(reaction.emoji.name) && !alreadyReacted.includes(user.id)
+            return Object.keys(pollUpdate).includes(reaction.emoji.name) && !user.bot
         }
 
+        //let removeFilter = (reaction, user)
         //Await reactions and update embed.
         const collector = sentMessage.createReactionCollector(filter, { time: 60000, dispose: true })
 
         //Activate modification of embed if reaction is correct.
         collector.on('collect', (reaction, user) => {
+
+            //If user already reacted.
+            if (alreadyReacted.includes(user.id)) {
+                return
+            }
+
             const emojiName = reaction.emoji.name
             const userID = user.id
             var newEmbed = new Discord.MessageEmbed(embed)
-            console.log(`Emoji name on collect is: ${ emojiName }`)
+
             pollUpdate[emojiName]++
+            idReaction[userID] = emojiName
 
             alreadyReacted.push(userID)
 
-            newEmbed.setDescription(`Number of Votes: ${pollUpdate.length}`)
-            var field = newEmbed.fields.find(f => f.emote === emojiName)
-            field.name = `${ (pollUpdate[emojiName]/pollUpdate.length)*100 }%`
+            newEmbed.setDescription(`Number of Votes: ${ alreadyReacted.length }`)
+
+            //Update all fields with new data.
+            Object.keys(pollUpdate).forEach(key => {
+                var field = newEmbed.fields.find(f => f.name === key)
+                var decimalReacted = (pollUpdate[key] / alreadyReacted.length)
+                var percentReacted = decimalReacted * 100
+                var createdBar = createPercentageBar(decimalReacted)
+                field.value = `${ percentReacted }% \t\t\t ${createdBar}`
+            })
+
+            sentMessage.edit(newEmbed)
         })
 
-        collector.on('dispose', (reaction, user) => {
+        collector.on('remove', (reaction, user) => {
             //Put code for removed reaction here.
+            //Its the above code but in reverse
+            //If user did not already react or if the reaction removed is not the one originally added.
+            const emojiName = reaction.emoji.name
+            const userID = user.id
+
+            if (!alreadyReacted.includes(user.id) || !(emojiName === idReaction[userID])) {
+                return
+            }
+
+            var newEmbed = new Discord.MessageEmbed(embed)
+
+            //Remove the data for that user's reaction.
+            pollUpdate[emojiName]--
+            delete idReaction[userID]
+
+            alreadyReacted.splice(alreadyReacted.indexOf(userID), 1)
+
+            newEmbed.setDescription(`Number of Votes: ${alreadyReacted.length}`)
+
+            //Update all fields with new data.
+            Object.keys(pollUpdate).forEach(key => {
+                var field = newEmbed.fields.find(f => f.name === key)
+                var decimalReacted = alreadyReacted.length == 0 ? 0 : (pollUpdate[key] / alreadyReacted.length)
+                var percentReacted = decimalReacted * 100
+                var createdBar = createPercentageBar(decimalReacted)
+                field.value = `${ percentReacted }% \t\t\t ${createdBar}`
+            })
+
+            sentMessage.edit(newEmbed)
         })
 
         collector.on('end', (collected, reason) => {
             //Put code for finishing poll here.
         })
     });
+}
+
+//Should take a decimal value < 1.
+function createPercentageBar(percent) {
+    const FULL_BAR = config.get("CommandAssets.barFull")
+    const EMPTY_BAR = config.get("CommandAssets.barEmpty")
+    const TOTAL_BAR = 10
+
+    var percentTens = percent * 10
+    var percentRounded = Math.round(percentTens)
+    var baseString = ""
+
+    var fullAmount = 0;
+
+    for (i = 0; i < TOTAL_BAR; i++) {
+        if (fullAmount < percentRounded) {
+            baseString = baseString.concat(FULL_BAR)
+            fullAmount++
+        }
+        else {
+            baseString = baseString.concat(EMPTY_BAR)
+        }
+    }
+
+    return baseString
 }
 
 function profile(msg, tokens, data) {

@@ -92,6 +92,7 @@ function awardPoints(guild, member, data) {
 
 client.login(token)
 
+
 client.on('ready', async () => {
 	//Iterate through all servers and users and check client.points.
 	await getUserInfo()
