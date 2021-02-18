@@ -1,5 +1,11 @@
 MAJOR. WRITE TEST FUNCTIONS
 
+Add poll options
+	-s (Hides poll votes until the end)
+	-t [time] (Sets timer in minutes)
+
+Change how options are parsed in the command
+
 Modify command parsing to look for options.
 Write test functions
 

@@ -147,10 +147,14 @@ function poll(msg, tokens, data) {
 
 
     //Should store pairs with the name and the amount voted.
-    embed.setDescription("Number of Votes: 0")
+    var createdDescription = "Number of Votes: 0 \n\n"
+    //embed.setDescription("Number of Votes: 0 \n")
     embed.setThumbnail(Constants.POLL_EMBED_IMAGE)
+    embed.setColor("GREEN")
 
     var pollUpdate = {}
+    var pollChoice = {}
+
     var idReaction = {}
     var index = 0
 
@@ -168,16 +172,20 @@ function poll(msg, tokens, data) {
             index = index + 1
 
             //Add fields that will be displayed.
-            embed.addFields(
+            /*embed.addFields(
                 { name: '\u200B', value: `${ optionLetter } ${ word }`, inline: true },
                 { name: optionLetter, value: `0% \t\t\t ${createPercentageBar(0)}`, inline: true },
                 { name: '\u200B', value: '\u200B'}
-            )
-
+            )*/
+            createdDescription = createdDescription.concat(`${optionLetter} ${word} \n`)
+            createdDescription = createdDescription.concat(`${createPercentageBar(0)} 0%\n\n`)
             //Initialize amount of votes each option has.
             pollUpdate[optionLetter] = 0
+            pollChoice[optionLetter] = word
         }
     }
+
+    embed.setDescription(createdDescription)
     
     //React to message with appropriate keys.
     msg.channel.send(embed).then((sentMessage) => {
@@ -208,23 +216,30 @@ function poll(msg, tokens, data) {
             const emojiName = reaction.emoji.name
             const userID = user.id
             var newEmbed = new Discord.MessageEmbed(embed)
+            var newDescription = ""
 
             pollUpdate[emojiName]++
             idReaction[userID] = emojiName
 
             alreadyReacted.push(userID)
 
-            newEmbed.setDescription(`Number of Votes: ${ alreadyReacted.length }`)
-
+            //newEmbed.setDescription(`Number of Votes: ${ alreadyReacted.length }`)
+            newDescription = newDescription.concat(`Number of Votes: ${alreadyReacted.length}\n\n`)
             //Update all fields with new data.
             Object.keys(pollUpdate).forEach(key => {
-                var field = newEmbed.fields.find(f => f.name === key)
+                //var field = newEmbed.fields.find(f => f.name === key)
                 var decimalReacted = (pollUpdate[key] / alreadyReacted.length)
                 var percentReacted = decimalReacted * 100
                 var createdBar = createPercentageBar(decimalReacted)
-                field.value = `${ percentReacted }% \t\t\t ${createdBar}`
+                
+                newDescription = newDescription.concat(`${key} ${ pollChoice[key] } \n`)
+                newDescription = newDescription.concat(`${createdBar} ${ percentReacted }%\n\n`)
+                //field.value = `${ percentReacted }% \t\t\t ${createdBar}`
             })
 
+            newEmbed.setDescription(newDescription)
+
+            embed = newEmbed
             sentMessage.edit(newEmbed)
         })
 
@@ -240,29 +255,40 @@ function poll(msg, tokens, data) {
             }
 
             var newEmbed = new Discord.MessageEmbed(embed)
-
+            var newDescription = ""
             //Remove the data for that user's reaction.
             pollUpdate[emojiName]--
             delete idReaction[userID]
 
             alreadyReacted.splice(alreadyReacted.indexOf(userID), 1)
 
-            newEmbed.setDescription(`Number of Votes: ${alreadyReacted.length}`)
+            //newEmbed.setDescription(`Number of Votes: ${alreadyReacted.length}`)
+            newDescription = newDescription.concat(`Number of Votes: ${alreadyReacted.length}\n\n`)
 
             //Update all fields with new data.
             Object.keys(pollUpdate).forEach(key => {
-                var field = newEmbed.fields.find(f => f.name === key)
+                //var field = newEmbed.fields.find(f => f.name === key)
                 var decimalReacted = alreadyReacted.length == 0 ? 0 : (pollUpdate[key] / alreadyReacted.length)
                 var percentReacted = decimalReacted * 100
                 var createdBar = createPercentageBar(decimalReacted)
-                field.value = `${ percentReacted }% \t\t\t ${createdBar}`
+                newDescription = newDescription.concat(`${key} ${pollChoice[key]} \n`)
+                newDescription = newDescription.concat(`${createdBar} ${ percentReacted }%\n\n`)
+                //field.value = `${ percentReacted }% \t\t\t ${createdBar}`
             })
 
+            newEmbed.setDescription(newDescription)
+
+            embed = newEmbed
             sentMessage.edit(newEmbed)
         })
 
         collector.on('end', (collected, reason) => {
             //Put code for finishing poll here.
+            sentMessage.reactions.removeAll()
+            var newEmbed = new Discord.MessageEmbed(embed)
+            newEmbed.setColor("RED")
+
+            sentMessage.edit(newEmbed)
         })
     });
 }
