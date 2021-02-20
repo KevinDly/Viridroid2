@@ -17,15 +17,21 @@
     "blackjack": {
       "format": "s!blackjack [Required: Amount]",
       "description": "Plays a game of blackjack!",
-      "detailed": [ "Allows you to start a game of blackjack!\n",
-                    "The amount is the amount staked in the game\n",
-                    "Upon winning your amount is doubled, otherwise its the amount subtracted.\n",
-                    "When starting, you may either choose HIT or STAY\n",
-                    "You have one minute to choose before the game times out.\n",
-                    "If you choose HIT, and get an additional card until you STAY.\n",
-                    "If you or the house goes over a total value of 21, then the game ends." ]
+      "detailed": [
+        "Allows you to start a game of blackjack!\n",
+        "The amount is the amount staked in the game\n",
+        "Upon winning your amount is doubled, otherwise its the amount subtracted.\n",
+        "When starting, you may either choose HIT or STAY\n",
+        "You have one minute to choose before the game times out.\n",
+        "If you choose HIT, and get an additional card until you STAY.\n",
+        "If you or the house goes over a total value of 21, then the game ends."
+      ]
     },
     "poll": {
+      "options": {
+        "-s": 0,
+        "-t": 1
+      },
       "format": "Add format",
       "description": "Add description",
       "detailed": []

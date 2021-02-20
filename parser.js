@@ -6,6 +6,51 @@ const config = require('config');
 
 //TODO: Replace the quotations with empty char when putting quote in array.
 //TODO: Check for \" when looking at the end.
+
+function getOptions(command, tokens) {
+	let variableData = fs.readFileSync('./config/commandlist.json')
+	let parsedData = JSON.parse(variableData)
+
+	var commandObj = parsedData["Commands"]
+
+	//Check if the command is not in the list OR if the command has no options.
+	if (!commandObj.hasOwnProperty(command) || !commandObj[command].hasOwnProperty("options"))
+		return [];
+	else 
+		commandObj = parsedData["Commands"][command][options]
+
+	var optionsList = {}
+
+	//Loops through tokens to see if options and their required modifiers are correct.
+	for (var index in tokens) {
+		var token = tokens[index]
+		if (token.startsWith('-')) {
+
+			//Check if the option even exists, if not throw away entire command.
+			if (!commandObj.hasOwnProperty(token))
+				throw `No such option: ${token}`
+
+			var numTokens = commandObj[token]
+
+			var i = 0;
+
+			//Check if too few options are given, exceeds amount of tokens there are.
+			if (index + 1 + numTokens > tokens.length)
+				throw `Too many options for: ${token}, requires ${numTokens}`
+
+			var optionModifiers = []
+			for (i = index + 1; i < index + numTokens; i++) {
+				optionModifiers.push(tokens[i])
+			}
+
+			//Set list of tokens appropriately.
+			optionsList[token] = optionModifiers
+        }
+	}
+
+	return optionsList;
+}
+
 function parse(command) {
 	var tokenArray = []
 	var word = ""

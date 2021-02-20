@@ -124,7 +124,14 @@ client.on('message', async (msg) => {
 
 	//Check if command is valid
 	if (Parse.checkPrefix(command) == true) {
-		command = command.replace(config.get('prefix'), "")
+		command = command.replace(config.get('prefix'), "") 
+		try {
+			options = Parse.parse(command, tokens)
+		}
+		catch (err) {
+			msg.channel.send(err)
+		}
+
 		tokens = Parse.parse(tokens)
 		//Check against command list.
 		//Check table of functions
