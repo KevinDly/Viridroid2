@@ -1,5 +1,6 @@
 // JavaScript source code
-const config = require('config');
+const config = require('config')
+const fs = require('fs')
 
 //Parses line into correct tokens.
 //Puts quotations together.
@@ -7,8 +8,8 @@ const config = require('config');
 //TODO: Replace the quotations with empty char when putting quote in array.
 //TODO: Check for \" when looking at the end.
 
-function getOptions(command, tokens) {
-	let variableData = fs.readFileSync('./config/commandlist.json')
+function getOptions(command, tokens, commandsLocation = './config/commandlist.json') {
+	let variableData = fs.readFileSync(commandsLocation)
 	let parsedData = JSON.parse(variableData)
 
 	var commandObj = parsedData["Commands"]
@@ -17,38 +18,61 @@ function getOptions(command, tokens) {
 	if (!commandObj.hasOwnProperty(command) || !commandObj[command].hasOwnProperty("options"))
 		return [];
 	else 
-		commandObj = parsedData["Commands"][command][options]
+		commandObj = parsedData["Commands"][command]["options"]
 
 	var optionsList = {}
 
+	var maxTokens = -1
+	var count = -1
+	var optionName = ''
+
 	//Loops through tokens to see if options and their required modifiers are correct.
-	for (var index in tokens) {
-		var token = tokens[index]
+	tokens.forEach(function (token, index) {
 		if (token.startsWith('-')) {
+
+			//Don't allow -[a-zA-Z0-9] to be allowed in option modifiers.
+			if (optionName != '')
+				throw new Error(`Option given: ${token} is not allowed for ${optionName}`)
 
 			//Check if the option even exists, if not throw away entire command.
 			if (!commandObj.hasOwnProperty(token))
-				throw `No such option: ${token}`
+				throw new Error(`No such option: ${token}`)
 
 			var numTokens = commandObj[token]
 
-			var i = 0;
-
 			//Check if too few options are given, exceeds amount of tokens there are.
 			if (index + 1 + numTokens > tokens.length)
-				throw `Too many options for: ${token}, requires ${numTokens}`
+				throw new Error(`Too many options for: ${token}, requires ${numTokens}`)
 
 			var optionModifiers = []
-			for (i = index + 1; i < index + numTokens; i++) {
-				optionModifiers.push(tokens[i])
+
+			//Check current option requires 1 or more token.
+			if (numTokens != 0) {
+				maxTokens = numTokens
+				count = 0
+				optionName = token
 			}
 
 			//Set list of tokens appropriately.
-			optionsList[token] = optionModifiers
-        }
-	}
+			if (optionsList.hasOwnProperty(token)) {
+				throw new Error(`Duplicate option: ${ token } given`)
+			}
 
-	return optionsList;
+			optionsList[token] = optionModifiers
+		}
+		else if (optionName != '') {
+			optionsList[optionName].push(token)
+			count++
+
+			if(count >= maxTokens) {
+				maxTokens = -1
+				count = -1
+				optionName = ''
+            }
+        }
+	})
+
+	return optionsList
 }
 
 function parse(command) {
@@ -109,4 +133,4 @@ function checkPrefix(command) {
 		return false;
 }
 
-module.exports = { parse, checkPrefix };
+module.exports = { parse, checkPrefix, getOptions };

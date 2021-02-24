@@ -3,6 +3,7 @@ MAJOR. WRITE TEST FUNCTIONS
 Add poll options
 	-s (Hides poll votes until the end)
 	-t [time] (Sets timer in minutes)
+Test getOptions
 
 Change how options are parsed in the command
 

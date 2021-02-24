@@ -4,7 +4,7 @@
   "description": "A personalized discord bot containing features that the developer decideed to put in.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha || true"
   },
   "repository": {
     "type": "git",
@@ -21,7 +21,8 @@
   },
   "homepage": "https://github.com/KevinDly/Viridroid2#readme",
   "devDependencies": {
-    "@types/node": "^14.14.20"
+    "@types/node": "^14.14.20",
+    "chai": "^4.3.0"
   },
   "dependencies": {
     "async-mutex": "^0.2.6",
