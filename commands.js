@@ -12,7 +12,7 @@ module.exports =
     award: function (msg, tokens, data) { award(msg, tokens, data) },
     help: function (msg, tokens, data) { help(msg, tokens, data) },
     version: function (msg, tokens, data) { version(msg, tokens, data) },
-    poll: function (msg, tokens, data) { poll(msg, tokens, data) },
+    poll: function (msg, tokens, data, options) { poll(msg, tokens, data) },
     profile: function (msg, tokens, data) { }
 }
 
@@ -130,9 +130,24 @@ function help(msg, tokens, data) {
     }
 }
 
-function poll(msg, tokens, data) {
+function poll(msg, tokens, data, options) {
     var embed = new Discord.MessageEmbed()
-
+    var time = 60000
+    const maxTimeInMinutes = 10
+    console.log(options)
+    if (options != [] && options.hasOwnProperty('-t')) {
+        var userTime = options['-t'];
+        if (!(/^\d+$/.test(userTime))) {
+            msg.channel.send("Time is not valid, should be a whole number.")
+        }
+        else {
+            userTime = Number(userTime)
+            if (userTime > maxTimeInMinutes) {
+                msg.channel.send("Time is not valid, must be less than 10 minutes")
+                time = time * 60000
+            }
+        }
+    }
     //Check if amount of choices are valid.
     //Arbitrarily 4 for now.
     const maxChoices = 4
@@ -144,7 +159,6 @@ function poll(msg, tokens, data) {
         msg.channel.send(`Reached max choice limit, max choices: ${maxChoices}`)
         return
     }
-
 
     //Should store pairs with the name and the amount voted.
     var createdDescription = "Number of Votes: 0 \n\n"
@@ -203,7 +217,7 @@ function poll(msg, tokens, data) {
 
         //let removeFilter = (reaction, user)
         //Await reactions and update embed.
-        const collector = sentMessage.createReactionCollector(filter, { time: 60000, dispose: true })
+        const collector = sentMessage.createReactionCollector(filter, { time: time, dispose: true })
 
         //Activate modification of embed if reaction is correct.
         collector.on('collect', (reaction, user) => {

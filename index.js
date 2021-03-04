@@ -123,16 +123,25 @@ client.on('message', async (msg) => {
 	tokens.shift()
 
 	//Check if command is valid
+
 	if (Parse.checkPrefix(command) == true) {
+		tokens = Parse.parse(tokens)
+
+		var options = []
+		console.log("Options: " + options)
 		command = command.replace(config.get('prefix'), "") 
 		try {
-			options = Parse.parse(command, tokens)
+			options = Parse.getOptions(command, tokens)
+			if (options != []) {
+				tokens = options["tokens"]
+            }
 		}
 		catch (err) {
 			msg.channel.send(err)
 		}
 
-		tokens = Parse.parse(tokens)
+		console.log("Options: " + options)
+		//tokens = Parse.parse(tokens)
 		//Check against command list.
 		//Check table of functions
 
@@ -142,7 +151,7 @@ client.on('message', async (msg) => {
 				console.log("Initiating command: " + command)
 				if(tokens.length >= 1)
 					console.log("With Parameter(s): " + tokens)
-				Commands[command](msg, tokens, result)
+				Commands[command](msg, tokens, result, options)
             }).catch((error) => console.log(error))
 			console.log(Constants.COMMAND_SUCCESS_MESSAGE)
 		}

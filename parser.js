@@ -13,10 +13,10 @@ function getOptions(command, tokens, commandsLocation = './config/commandlist.js
 	let parsedData = JSON.parse(variableData)
 
 	var commandObj = parsedData["Commands"]
-
+	var tokenList = []
 	//Check if the command is not in the list OR if the command has no options.
 	if (!commandObj.hasOwnProperty(command) || !commandObj[command].hasOwnProperty("options"))
-		return [];
+		return tokenList
 	else 
 		commandObj = parsedData["Commands"][command]["options"]
 
@@ -61,7 +61,11 @@ function getOptions(command, tokens, commandsLocation = './config/commandlist.js
 			optionsList[token] = optionModifiers
 		}
 		else if (optionName != '') {
-			optionsList[optionName].push(token)
+			var toPush = token
+			if (token.startsWith('"') && token.endsWith('"')) {
+				toPush = token.substring(1, token.length - 1)
+            }
+			optionsList[optionName].push(toPush)
 			count++
 
 			if(count >= maxTokens) {
@@ -69,34 +73,43 @@ function getOptions(command, tokens, commandsLocation = './config/commandlist.js
 				count = -1
 				optionName = ''
             }
-        }
+		}
+		else
+			tokenList.push(token)
 	})
 
+	optionsList["tokens"] = tokenList
 	return optionsList
 }
 
+//Should never replace \\\" with \" unless it is within a phrase.
 function parse(command) {
 	var tokenArray = []
 	var word = ""
 	for (var index in command) {
 		var token = command[index]
 
-		console.log("Token: " + token)
 		//Check if the token is a phrase.
 		if (token === "\"\"") {
 			console.log("invalid")
 			continue;
 		}
 
-		if (token.startsWith('"') && !(word != "") && (!token.endsWith('"') || token.length == 1)) {
+		//Check if token is an option
+		if (token.startsWith("-") && word == "")
+			tokenArray.push(token)
+		//Check if the token is a phrase.
+		else if (token.startsWith('"') && !(word != "") && (!token.endsWith('"') || token.length == 1)) {
 			//If the token is the start of a phrase.
 			word = word.concat(token)
 		}
-		else if (token.endsWith('"') && !token.endsWith("\\\"") && (word != "")) {
+		else if (token.endsWith("\\\"")) {
+			var newToken = token.replace("\\\"", '"')
+			word = word.concat(" " + newToken)
+		}
+		else if (token.endsWith('"') && (word != "")) {
 			//If the token is the end of a previously started phrase.
-			var endToken = token.substring(0, token.length - 1)
-			word = word.concat(" " + endToken)
-			word = word.substring(1, word.length)
+			word = word.concat(" " + token)
 			word.replace("\\\"", "\"")
 			tokenArray.push(word)
 			word = ""
@@ -107,21 +120,19 @@ function parse(command) {
 		else {
 			//If the token is not in a phrase, start of a phrase, or the end of a phrase.
 			if (token.startsWith('"') && token.endsWith('"')) {
-				token = token.substring(1, token.length - 1)
-			}
-
-			//Check if the word is empty, shouldn't add.
-			if (token != "")
 				tokenArray.push(token)
+			}
+			else if (token != "")
+				tokenArray.push('"' + token + '"')
+			//Check if the word is empty, shouldn't add.
 		}
 	}
 
 	//Check if there is still a word in the array that hasnt finished
 	//Generally means the user forgot to put a quotation.
 	if (word != "")
-		tokenArray.push(word)
+		tokenArray.push(word + '"')
 
-	console.log(tokenArray)
 	return tokenArray
 }
 

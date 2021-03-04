@@ -1,5 +1,6 @@
 const assert = require('chai').assert
 const getOptions = require('../parser.js').getOptions
+const parse = require('../parser.js').parse
 
 const testDataLocation = './test/testdata/commandlist.test.json'
 describe("parser.js", function () {
@@ -44,21 +45,39 @@ describe("parser.js", function () {
             describe("option with 0 modifiers", function () {
                 const oneOptionOtherParameters = ['-s', 'hello', 'how are you']
                 const oneOptionAtEnd = ['how are you', 'hello', '-s']
+                const objectEmpty = {
+                    "-s": [],
+                    "tokens": []
+                }
+                const objectOrder1 = {
+                    "-s": [],
+                    "tokens": ['hello', 'how are you']
+                }
+                const objectOrder2 = {
+                    "-s": [],
+                    "tokens": ['how are you', 'hello']
+                }
 
                 it('should give empty list when -s is passed', function () {
-                    assert.deepEqual(getOptions(pollCommand, oneOption, testDataLocation)['-s'], [])
+                    assert.deepEqual(getOptions(pollCommand, oneOption, testDataLocation), objectEmpty)
                 })
                 it('should give empty list when -s is passed, even if other modifiers exist', function () {
-                    assert.deepEqual(getOptions(pollCommand, oneOptionOtherParameters, testDataLocation)['-s'], [])
+                    assert.deepEqual(getOptions(pollCommand, oneOptionOtherParameters, testDataLocation), objectOrder1)
                 })
                 it('should give empty list when -s is passed, even if other modifiers exist, regardless of order', function () {
-                    assert.deepEqual(getOptions(pollCommand, oneOptionAtEnd, testDataLocation)['-s'], [])
+                    assert.deepEqual(getOptions(pollCommand, oneOptionAtEnd, testDataLocation), objectOrder2)
                 })
             })
 
             describe("option with 1 modifier", function () {
                 const oneOptionOneModifier = ['-t', "expected"]
                 const oneOptionTwoModifier = ['-t', "expected", "unexpected"]
+
+                const tokenWithQuotes = ['-t', '"quotes"']
+                const withoutQuotes = {
+                    '-t': ['quotes'],
+                    "tokens": []
+                }
 
                 it('should give list of size 1 when -t and "expected" are passed', function () {
                     assert.equal(getOptions(pollCommand, oneOptionOneModifier, testDataLocation)['-t'].length, 1)
@@ -75,6 +94,9 @@ describe("parser.js", function () {
                 it('should give list with "expected" when -t and two other strings are passed', function () {
                     assert.deepEqual(getOptions(pollCommand, oneOptionTwoModifier, testDataLocation)['-t'], ["expected"])
                 })
+                it('should strip quotes from words if they are included in command options', function () {
+                    assert.deepEqual(getOptions(pollCommand, tokenWithQuotes, testDataLocation), withoutQuotes)
+                })
             })
 
             describe("multiple options all correct, each option with 1 or less modifer", function () {
@@ -82,7 +104,8 @@ describe("parser.js", function () {
 
                 const twoOptionsCorrectOutput = {
                     '-s': [],
-                    '-t': ['expected']
+                    '-t': ['expected'],
+                    'tokens': []
                 }
 
                 it('should return correct object with both options correctly input', function () {
@@ -97,12 +120,19 @@ describe("parser.js", function () {
                 const twoOptions = ["-l", "hello", "goodbye", "whats up", "danke schon", "kikkeriki!!", '-kl', 'humuhumu', "big ups!"]
 
                 const correctObject = {
-                    "-l": ["hello", "goodbye", "whats up", "danke schon", "kikkeriki!!"]
+                    "-l": ["hello", "goodbye", "whats up", "danke schon", "kikkeriki!!"],
+                    "tokens": []
+                }
+
+                const correctObjectWithTokens = {
+                    "-l": ["hello", "goodbye", "whats up", "danke schon", "kikkeriki!!"],
+                    "tokens": ['humuhumu', "big ups!"]
                 }
 
                 const correctObjectWithTwo = {
                     '-l': ["hello", "goodbye", "whats up", "danke schon", "kikkeriki!!"],
-                    '-kl': ['humuhumu', "big ups!"]
+                    '-kl': ['humuhumu', "big ups!"],
+                    "tokens": []
                 }
 
                 const fiveModifiersObject = getOptions(fiveModifiersCommand, fiveModifiersGiven, testDataLocation)
@@ -129,7 +159,7 @@ describe("parser.js", function () {
                     assert.equal(sevenModifierObject["-l"].length, 5)
                 })
                 it("should return an object with a key -l and an array with the 5 correct tokens, even if 7 are given", function () {
-                    assert.deepEqual(sevenModifierObject, correctObject)
+                    assert.deepEqual(sevenModifierObject, correctObjectWithTokens)
                 })
 
                 it("should return an object if correct modifiers for multiple options are given", function () {
@@ -151,4 +181,142 @@ describe("parser.js", function () {
 
 
     })
+
+    describe("parse()", function () {
+        describe("single words", function () {
+
+            const list = ['hello', 'goodbye', 'how']
+            const quotedList = ['"hello"', '"goodbye"', '"how"']
+
+            const weirdQuotes = ['quote"']
+            const weirdQuotesFull = ['"quote""']
+
+            it("should return an empty list if given an empty list", function () {
+                assert.deepEqual(parse([]), [])
+            })
+            it("should return a list of words, who are all surrounded by quotes", function () {
+                assert.deepEqual(parse(list), quotedList)
+            })
+            it("should return a list of words, surrounded by quotes, even if the original words had quotes", function () {
+                assert.deepEqual(parse(quotedList), quotedList)
+            })
+            it("should give a list with one word that has two quotes at the end and one at the beginning", function () {
+                assert.deepEqual(parse(weirdQuotes), weirdQuotesFull)
+            })
+        })
+
+        describe("options", function () {
+            const singularOptionList = ['-s']
+            const optionAndToken = ['-s', 'hello']
+            const optionAndTokenCorrect = ['-s', '"hello"']
+            const optionWithQuotes = ['-s', '"-s"']
+
+            it("should return an array with the option not in quotes", function () {
+                assert.deepEqual(parse(singularOptionList), singularOptionList)
+            })
+
+            it("should return an array with a token and option, if given a token and option", function () {
+                assert.deepEqual(parse(optionAndToken), optionAndTokenCorrect)
+            })
+
+            it("should return an array with token and option, even if the token is an option in quotes", function () {
+                assert.deepEqual(parse(optionWithQuotes), optionWithQuotes)
+            })
+        })
+
+        describe("phrases", function () {
+            const fullSplitPhrase = ['"this', 'should', 'be', 'phrased"']
+            const fullPhrase = ['"this should be phrased"']
+
+            const splitPhraseWithWords = ['"this', 'should', 'have"', 'phrase']
+            const fullSplitPhraseWithWords = ['"this should have"', '"phrase"']
+
+            const phraseWithQuotes = ['"this', 'phrase', '"is', 'phrased\\\"', 'correctly"']
+            const fullPhraseWithQuotes = ['"this phrase "is phrased" correctly"']
+
+            const twoPhrases = ['"phrase', 'one', 'sucks"', '"phrase', 'two', 'rules"']
+            const fullTwoPhrases = ['"phrase one sucks"', '"phrase two rules"']
+            it("should return a full phrase", function () {
+                assert.deepEqual(parse(fullSplitPhrase), fullPhrase)
+            })
+
+            it("should return a full phrase and a word, all surrounded with quotes", function () {
+                assert.deepEqual(parse(splitPhraseWithWords), fullSplitPhraseWithWords)
+            })
+
+            it("should replace \\\" only if it exists at the end of a word", function () {
+                assert.deepEqual(parse(phraseWithQuotes), fullPhraseWithQuotes)
+            })
+
+            it("should give two phrases if two are given", function () {
+                assert.deepEqual(parse(twoPhrases), fullTwoPhrases)
+            })
+        })
+
+        describe("mixed phrases, options, and words", function () {
+            const optionsPhrasesAndWords = ['-t', 'worded', '"what', 'is', 'up"']
+            const fullOPAW = ['-t', '"worded"', '"what is up"']
+
+            const moreOptionsPhrasesWords = ['-t', '-s', '"-s"', 'explain', '"time', 'to', 'throw"', '"pogchamp"']
+            const fullMOPW = ['-t', '-s', '"-s"', '"explain"', '"time to throw"', '"pogchamp"']
+
+            const trickiestWordArray = ['-t', '-t\\\"', '-s', '"-o"', '"one', 'option', 'is', '"-o', '-t', 'and', '-l\\\"', 'all', 'cool"', '"right?"', 'right!']
+            const fullTrick = ['-t', '-t\\\"', '-s', '"-o"', '"one option is "-o -t and -l" all cool"', '"right?"', '"right!"']
+            it("should give an array with the correct options, words, and phrases", function () {
+                assert.deepEqual(parse(optionsPhrasesAndWords), fullOPAW)
+            })
+
+            it("should give another array with trickier options, words, and phrases", function () {
+                assert.deepEqual(parse(moreOptionsPhrasesWords), fullMOPW)
+            })
+
+            it('should give an array with the trickiest options, including \\\", phrases, words, options, and options with \\\"', function () {
+                assert.deepEqual(parse(trickiestWordArray), fullTrick)
+            })
+        })
+
+    })
+
+    describe("parse and getOptions integration test", function () {
+        describe("basic inputs", function () {
+            const inputArray = ['400']
+
+            var tokens = parse(inputArray)
+            var optionObject = getOptions("blackjack", tokens, testDataLocation)
+
+            it("should just return an empty array", function () {
+                assert.deepEqual(optionObject, [])
+            })
+
+            const optionsInputArray = ['-s', '400']
+            const outputObject = {
+                "-s": [],
+                "tokens": ['"400"']
+            }
+
+            var tokens2 = parse(optionsInputArray)
+            var optionsObject2 = getOptions("poll", tokens2, testDataLocation)
+
+            it("should return an object with a token and an array", function () {
+                assert.deepEqual(optionsObject2, outputObject)
+            })
+        })
+
+        describe("complex command inputs (options and phrases/words)", function () {
+            const inputArray = ['-s', '-t', '500', '"Hello,', 'how', 'are,', 'you?"', '"Very,', 'good!"', 'No']
+            const pollObject = {
+                '-s': [],
+                '-t': ['500'],
+                'tokens': ['"Hello, how are, you?"', '"Very, good!"', '"No"']
+            }
+
+            var tokens = parse(inputArray)
+            var optionsObject = getOptions('poll', tokens, testDataLocation)
+
+            it("should return an object with three tags, two of which are options, one of which has an array with 1 thing, a third option with tokens", function () {
+                assert.deepEqual(optionsObject, pollObject)
+            })
+        })
+    })
 })
+

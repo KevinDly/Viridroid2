@@ -257,7 +257,7 @@ async function newBlackjackLoop(dataKey, buyIn, data, houseHand, playerHand, car
 
     //TODO: Make bot pause
     if (playerStay) {
-        if (houseValue < 16) {
+        if (houseValue < 16 || playerValue > houseValue) {
             //Draw Card
             var cardIndex = Util.randomInRange(0, cards.length);
             var card = cards.splice(cardIndex, 1)[0]
