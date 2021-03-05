@@ -128,19 +128,23 @@ client.on('message', async (msg) => {
 		tokens = Parse.parse(tokens)
 
 		var options = []
-		console.log("Options: " + options)
 		command = command.replace(config.get('prefix'), "") 
 		try {
 			options = Parse.getOptions(command, tokens)
-			if (options != []) {
-				tokens = options["tokens"]
-            }
 		}
 		catch (err) {
 			msg.channel.send(err)
 		}
 
-		console.log("Options: " + options)
+		console.log(options)
+		//Check if getOptions returned an empty array or not
+		if (!Array.isArray(options)) {
+			tokens = Parse.stripQuotes(options["tokens"])
+		}
+		else {
+			tokens = Parse.stripQuotes(tokens)
+        }
+
 		//tokens = Parse.parse(tokens)
 		//Check against command list.
 		//Check table of functions

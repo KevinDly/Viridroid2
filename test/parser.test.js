@@ -1,6 +1,7 @@
 const assert = require('chai').assert
 const getOptions = require('../parser.js').getOptions
 const parse = require('../parser.js').parse
+const stripQuotes = require('../parser.js').stripQuotes
 
 const testDataLocation = './test/testdata/commandlist.test.json'
 describe("parser.js", function () {
@@ -11,7 +12,7 @@ describe("parser.js", function () {
         const blackjackCommand = 'blackjack'
 
 
-        describe("intended errors", function () {
+        describe("errors", function () {
 
             const oneOptionNoModifier = ['-t']
             const optionDoesntExist = ['-kd']
@@ -29,6 +30,12 @@ describe("parser.js", function () {
             })
             it('should throw error when a token that starts with - is given as a modifier', function () {
                 assert.throws(() => getOptions(pollCommand, twoRealDuplicates, testDataLocation), Error, /Duplicate option/)
+            })
+            it('should throw error if an invalid or non-existant file location is given', function () {
+                assert.throws(() => getOptions(pollCommand, oneOptionNoModifier, './test/testdata/fake.json'))
+            })
+            it('should throw an error if a non-json file is given', function () {
+                assert.throws(() => getOptions(pollCommand, oneOptionNoModifier, './test/testdata/notajson.txt'))
             })
         })
 
@@ -275,6 +282,42 @@ describe("parser.js", function () {
             })
         })
 
+    })
+
+    describe("stripQuotes()", function () {
+        const oneWordQuoted = ['"hello"']
+        const oneWord = ['hello']
+        it("should remove quotes if the quotes are at the beginning and end", function () {
+            assert.deepEqual(stripQuotes(oneWordQuoted), oneWord)
+        })
+
+        const multipleQuotedWords = ['"hello"', '"goodbye"', '"yes"', '"no"']
+        const multipleWords = ['hello', 'goodbye', 'yes', 'no']
+
+        it("should remove quotes from all words in a list that all have quotes", function () {
+            assert.deepEqual(stripQuotes(multipleQuotedWords), multipleWords)
+        })
+
+        it("should keep words that have no quotes at the end the same", function () {
+            assert.deepEqual(stripQuotes(multipleWords), multipleWords)
+        })
+
+        const oneQuotePerWord = ['"hello', 'goodbye"']
+        it("should not strip quotes if there is only one quote at the beginning or the end of a word", function () {
+            assert.deepEqual(stripQuotes(oneQuotePerWord), oneQuotePerWord)
+        })
+
+        const doublyQuoted = ['""hello""', '""yo""']
+        const singlyQuoted = ['"hello"', '"yo"']
+        it("should not strip more than one pair of quotes from the list", function () {
+            assert.deepEqual(stripQuotes(doublyQuoted), singlyQuoted)
+        })
+
+        const mixedTests = ['hello', '"how"', 'are you', '"are you good?"', 'thats"', '"great', '""-t""']
+        const mixedTestsQuotesRemoved = ['hello', 'how', 'are you', 'are you good?', 'thats"', '"great', '"-t"']
+        it("should be able to strip quotes from a tricky set of mixed words and phrases", function () {
+            assert.deepEqual(stripQuotes(mixedTests), mixedTestsQuotesRemoved)
+        })
     })
 
     describe("parse and getOptions integration test", function () {

@@ -5,12 +5,38 @@ const fs = require('fs')
 //Parses line into correct tokens.
 //Puts quotations together.
 
-//TODO: Replace the quotations with empty char when putting quote in array.
-//TODO: Check for \" when looking at the end.
+//Strip a set of quotes from front and back of word if they have quotations around itself.
+function stripQuotes(list) {
+	var wordList = []
 
+	list.forEach(word => {
+		if (word.startsWith('"') && word.endsWith('"'))
+			wordList.push(word.substring(1, word.length - 1))
+		else
+			wordList.push(word)
+	})
+
+	return wordList;
+}
+
+//Grab the options from a list of tokens, tokens, using command from the json file commandsLocation 
+//
 function getOptions(command, tokens, commandsLocation = './config/commandlist.json') {
-	let variableData = fs.readFileSync(commandsLocation)
-	let parsedData = JSON.parse(variableData)
+	var variableData, parsedData;
+
+	try {
+		variableData = fs.readFileSync(commandsLocation)
+	}
+	catch (err) {
+		throw err;
+	}
+
+	try {
+		parsedData = JSON.parse(variableData);
+	}
+	catch (err) {
+		throw err;
+    }
 
 	var commandObj = parsedData["Commands"]
 	var tokenList = []
@@ -144,4 +170,4 @@ function checkPrefix(command) {
 		return false;
 }
 
-module.exports = { parse, checkPrefix, getOptions };
+module.exports = { parse, checkPrefix, getOptions, stripQuotes };
