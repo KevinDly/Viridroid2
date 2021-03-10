@@ -136,14 +136,8 @@ client.on('message', async (msg) => {
 			msg.channel.send(err)
 		}
 
-		console.log(options)
 		//Check if getOptions returned an empty array or not
-		if (!Array.isArray(options)) {
-			tokens = Parse.stripQuotes(options["tokens"])
-		}
-		else {
-			tokens = Parse.stripQuotes(tokens)
-        }
+		tokens = Parse.stripQuotes(options["tokens"])
 
 		//tokens = Parse.parse(tokens)
 		//Check against command list.

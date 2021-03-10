@@ -39,14 +39,17 @@ function getOptions(command, tokens, commandsLocation = './config/commandlist.js
     }
 
 	var commandObj = parsedData["Commands"]
-	var tokenList = []
+	
 	//Check if the command is not in the list OR if the command has no options.
 	if (!commandObj.hasOwnProperty(command) || !commandObj[command].hasOwnProperty("options"))
-		return tokenList
+		return {
+			"tokens": []
+        }
 	else 
 		commandObj = parsedData["Commands"][command]["options"]
 
 	var optionsList = {}
+	var tokenList = []
 
 	var maxTokens = -1
 	var count = -1

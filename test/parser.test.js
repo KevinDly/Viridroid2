@@ -42,7 +42,7 @@ describe("parser.js", function () {
         describe("intended returns", function () {
             describe("basics", function () {
                 it('should return empty array if command does not have options', function () {
-                    assert.deepEqual(getOptions(blackjackCommand, [], testDataLocation), [])
+                    assert.deepEqual(getOptions(blackjackCommand, [], testDataLocation)["tokens"], [])
                 })
                 it('should return an object if command does have options', function () {
                     assert.isObject(getOptions(pollCommand, oneOption, testDataLocation))
@@ -328,7 +328,9 @@ describe("parser.js", function () {
             var optionObject = getOptions("blackjack", tokens, testDataLocation)
 
             it("should just return an empty array", function () {
-                assert.deepEqual(optionObject, [])
+                assert.deepEqual(optionObject, {
+                    "tokens": []
+                })
             })
 
             const optionsInputArray = ['-s', '400']

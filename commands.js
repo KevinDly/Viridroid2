@@ -12,7 +12,7 @@ module.exports =
     award: function (msg, tokens, data) { award(msg, tokens, data) },
     help: function (msg, tokens, data) { help(msg, tokens, data) },
     version: function (msg, tokens, data) { version(msg, tokens, data) },
-    poll: function (msg, tokens, data, options) { poll(msg, tokens, data) },
+    poll: function (msg, tokens, data, options) { poll(msg, tokens, data, options) },
     profile: function (msg, tokens, data) { }
 }
 
@@ -131,21 +131,38 @@ function help(msg, tokens, data) {
 }
 
 function poll(msg, tokens, data, options) {
+
     var embed = new Discord.MessageEmbed()
     var time = 60000
+    var silent = false
     const maxTimeInMinutes = 10
-    console.log(options)
-    if (options != [] && options.hasOwnProperty('-t')) {
-        var userTime = options['-t'];
-        if (!(/^\d+$/.test(userTime))) {
-            msg.channel.send("Time is not valid, should be a whole number.")
-        }
-        else {
-            userTime = Number(userTime)
-            if (userTime > maxTimeInMinutes) {
-                msg.channel.send("Time is not valid, must be less than 10 minutes")
-                time = time * 60000
+
+    console.log("options: " + options)
+    //Check if there are any options that were enabled by the user.
+    if (!Array.isArray(options)) {
+
+        //Check for time option
+        if (options.hasOwnProperty('-t')) {
+            var userTime = options['-t'];
+            if (!(/^\d+$/.test(userTime))) {
+                msg.channel.send("Time is not valid, should be a whole number.")
+                return
             }
+            else {
+                userTime = Number(userTime)
+                if (userTime > maxTimeInMinutes) {
+                    msg.channel.send("Time is not valid, must be less than 10 minutes")
+                    return
+                }
+                else {
+                    time = userTime * 60000
+                }
+            }
+        }
+
+        //Check for silent option
+        if (options.hasOwnProperty('-s')) {
+            silent = true;
         }
     }
     //Check if amount of choices are valid.
@@ -160,8 +177,13 @@ function poll(msg, tokens, data, options) {
         return
     }
 
-    //Should store pairs with the name and the amount voted.
-    var createdDescription = "Number of Votes: 0 \n\n"
+    //Update description to display additional rules
+    var createdDescription = ""
+    if (silent == true)
+        createdDescription = createdDescription.concat("Number of Votes: ???\nResults will not be shown until time is up.\n\n")
+    else
+        createdDescription = createdDescription.concat("Number of Votes: 0 \n\n")
+    
     //embed.setDescription("Number of Votes: 0 \n")
     embed.setThumbnail(Constants.POLL_EMBED_IMAGE)
     embed.setColor("GREEN")
@@ -175,6 +197,7 @@ function poll(msg, tokens, data, options) {
     const UTF16_BASE_1 = 55356
     const UTF16_BASE_2 = 56806
 
+    //Initialize the poll choices into the pollChoice and pollUpdate objects.
     for (var token in tokens) {
         var word = tokens[token]
         if (token == 0)
@@ -182,17 +205,14 @@ function poll(msg, tokens, data, options) {
         else {
             //Add the option to the embed
             var optionLetter = String.fromCharCode(UTF16_BASE_1, UTF16_BASE_2 + index)
-            //var emojiName = `${optionLetter}`
             index = index + 1
 
-            //Add fields that will be displayed.
-            /*embed.addFields(
-                { name: '\u200B', value: `${ optionLetter } ${ word }`, inline: true },
-                { name: optionLetter, value: `0% \t\t\t ${createPercentageBar(0)}`, inline: true },
-                { name: '\u200B', value: '\u200B'}
-            )*/
             createdDescription = createdDescription.concat(`${optionLetter} ${word} \n`)
-            createdDescription = createdDescription.concat(`${createPercentageBar(0)} 0%\n\n`)
+            if (silent == true)
+                createdDescription = createdDescription.concat(`${createPercentageBar(0)} ???%\n\n`)
+            else
+                createdDescription = createdDescription.concat(`${createPercentageBar(0)} 0%\n\n`)
+
             //Initialize amount of votes each option has.
             pollUpdate[optionLetter] = 0
             pollChoice[optionLetter] = word
@@ -238,17 +258,30 @@ function poll(msg, tokens, data, options) {
             alreadyReacted.push(userID)
 
             //newEmbed.setDescription(`Number of Votes: ${ alreadyReacted.length }`)
-            newDescription = newDescription.concat(`Number of Votes: ${alreadyReacted.length}\n\n`)
+
+            if (silent)
+                newDescription = newDescription.concat(`Number of Votes: ???\nResults will not be shown until time is up.\n\n`)
+            else
+                newDescription = newDescription.concat(`Number of Votes: ${alreadyReacted.length}\n\n`)
+
+
             //Update all fields with new data.
             Object.keys(pollUpdate).forEach(key => {
                 //var field = newEmbed.fields.find(f => f.name === key)
-                var decimalReacted = (pollUpdate[key] / alreadyReacted.length)
+                /*var decimalReacted = (pollUpdate[key] / alreadyReacted.length)
                 var percentReacted = decimalReacted * 100
-                var createdBar = createPercentageBar(decimalReacted)
-                
-                newDescription = newDescription.concat(`${key} ${ pollChoice[key] } \n`)
-                newDescription = newDescription.concat(`${createdBar} ${ percentReacted }%\n\n`)
-                //field.value = `${ percentReacted }% \t\t\t ${createdBar}`
+                var createdBar = createPercentageBar(decimalReacted)*/
+
+                newDescription = newDescription.concat(`${key} ${pollChoice[key]} \n`)
+                if (silent == false) {
+                    var decimalReacted = (pollUpdate[key] / alreadyReacted.length)
+                    var percentReacted = decimalReacted * 100
+                    var createdBar = createPercentageBar(decimalReacted)
+                    newDescription = newDescription.concat(`${createdBar} ${percentReacted}%\n\n`)
+                }
+                else {
+                    newDescription = newDescription.concat(`${createPercentageBar(0)} ???%\n\n`)
+                }
             })
 
             newEmbed.setDescription(newDescription)
@@ -277,17 +310,24 @@ function poll(msg, tokens, data, options) {
             alreadyReacted.splice(alreadyReacted.indexOf(userID), 1)
 
             //newEmbed.setDescription(`Number of Votes: ${alreadyReacted.length}`)
-            newDescription = newDescription.concat(`Number of Votes: ${alreadyReacted.length}\n\n`)
+            if (silent)
+                newDescription = newDescription.concat(`Number of Votes: ???\nResults will not be shown until time is up.\n\n`)
+            else
+                newDescription = newDescription.concat(`Number of Votes: ${alreadyReacted.length}\n\n`)
 
             //Update all fields with new data.
             Object.keys(pollUpdate).forEach(key => {
-                //var field = newEmbed.fields.find(f => f.name === key)
-                var decimalReacted = alreadyReacted.length == 0 ? 0 : (pollUpdate[key] / alreadyReacted.length)
-                var percentReacted = decimalReacted * 100
-                var createdBar = createPercentageBar(decimalReacted)
+
                 newDescription = newDescription.concat(`${key} ${pollChoice[key]} \n`)
-                newDescription = newDescription.concat(`${createdBar} ${ percentReacted }%\n\n`)
-                //field.value = `${ percentReacted }% \t\t\t ${createdBar}`
+                if (silent == false) {
+                    var decimalReacted = alreadyReacted.length == 0 ? 0 : (pollUpdate[key] / alreadyReacted.length)
+                    var percentReacted = decimalReacted * 100
+                    var createdBar = createPercentageBar(decimalReacted)
+                    newDescription = newDescription.concat(`${createdBar} ${percentReacted}%\n\n`)
+                }
+                else {
+                    newDescription = newDescription.concat(`${createPercentageBar(0)} ???%\n\n`)
+                }
             })
 
             newEmbed.setDescription(newDescription)
@@ -300,7 +340,33 @@ function poll(msg, tokens, data, options) {
             //Put code for finishing poll here.
             sentMessage.reactions.removeAll()
             var newEmbed = new Discord.MessageEmbed(embed)
+            
+
+            //Reupdate if description was silent
+            if (silent) {
+                var newDescription = ""
+                newDescription = newDescription.concat(`Number of Votes: ${alreadyReacted.length}\n\n`)
+
+
+                //Update all fields with new data.
+                Object.keys(pollUpdate).forEach(key => {
+                    //var field = newEmbed.fields.find(f => f.name === key)
+                    /*var decimalReacted = (pollUpdate[key] / alreadyReacted.length)
+                    var percentReacted = decimalReacted * 100
+                    var createdBar = createPercentageBar(decimalReacted)*/
+
+                    newDescription = newDescription.concat(`${key} ${pollChoice[key]} \n`)
+
+                    var decimalReacted = (pollUpdate[key] / alreadyReacted.length)
+                    var percentReacted = decimalReacted * 100
+                    var createdBar = createPercentageBar(decimalReacted)
+                    newDescription = newDescription.concat(`${createdBar} ${percentReacted}%\n\n`)
+                })
+                newEmbed.setDescription(newDescription)
+            }
+
             newEmbed.setColor("RED")
+
 
             sentMessage.edit(newEmbed)
         })
