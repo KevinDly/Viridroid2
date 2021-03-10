@@ -11,7 +11,7 @@
     },
     "points": {
       "format": "s!points",
-      "description": "Sends you a message with your amount of points.",
+      "description": "Sends you a message with your amount of points",
       "detailed":  ["Tells you the amount of points you have on the current server."]
     },
     "blackjack": {
@@ -32,19 +32,15 @@
         "-s": 0,
         "-t": 1
       },
-      "format": "s!poll [Optional: -t (time < 10)] [Optional: -s] [Required: Question] [Required: Answers]",
-      "description": "Starts a poll.",
-      "detailed": [
-        "Allows you to create a new poll!\n",
-        "A question must be input as well as at least 2 answers.\n",
-        "At max 4 answers are allowed in a poll.\n",
-        "To enter an answer or a question longer than one word\n",
-        "you may use quotations.\n",
-        "Example: s!poll \"How are you?\" good bad",
-        "This will start a poll with the question How are you? and give two answers",
-        "-t [time]: Allows you to set the max time for a poll, default is 1 minute, max is 10 minutes",
-        "-s: Hides poll results until the poll ends."
-      ]
+      "format": "Add format",
+      "description": "Add description",
+      "detailed": []
+    },
+    "faketestcommand":{
+      "options": {
+        "-l": 5,
+        "-kl": 2
+      }
     }
   }
 }

@@ -1,4 +1,4 @@
-const Discord = require('discord.js')
+﻿const Discord = require('discord.js')
 const Constants = require('./constants.js')
 const Parse = require('./parser.js')
 const Commands = require('./commands.js')
@@ -92,6 +92,7 @@ function awardPoints(guild, member, data) {
 
 client.login(token)
 
+
 client.on('ready', async () => {
 	//Iterate through all servers and users and check client.points.
 	await getUserInfo()
@@ -122,9 +123,24 @@ client.on('message', async (msg) => {
 	tokens.shift()
 
 	//Check if command is valid
+
 	if (Parse.checkPrefix(command) == true) {
-		command = command.replace(config.get('prefix'), "")
 		tokens = Parse.parse(tokens)
+
+		var options = []
+		command = command.replace(config.get('prefix'), "") 
+		try {
+			options = Parse.getOptions(command, tokens)
+		}
+		catch (err) {
+			msg.channel.send(err)
+		}
+
+		//Check if getOptions returned an empty array or not
+		var tempTokens = Parse.stripQuotes(options["tokens"])
+		tokens = (tempTokens.length != 0) ? tempTokens : Parse.stripQuotes(tokens)
+
+		//tokens = Parse.parse(tokens)
 		//Check against command list.
 		//Check table of functions
 
@@ -134,7 +150,7 @@ client.on('message', async (msg) => {
 				console.log("Initiating command: " + command)
 				if(tokens.length >= 1)
 					console.log("With Parameter(s): " + tokens)
-				Commands[command](msg, tokens, result)
+				Commands[command](msg, tokens, result, options)
             }).catch((error) => console.log(error))
 			console.log(Constants.COMMAND_SUCCESS_MESSAGE)
 		}

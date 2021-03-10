@@ -4,7 +4,6 @@ const Constants = require("./constants.js")
 const config = require("config")
 const CardConstants = require('./cardconstants.js')
 const { MessageEmbed }  = require("discord.js")
-const { minutesToMili } = require("./util.js")
 
 const HIT = config.get('Games.Blackjack.hit')
 const STAY = config.get('Games.Blackjack.stay')
@@ -258,7 +257,7 @@ async function newBlackjackLoop(dataKey, buyIn, data, houseHand, playerHand, car
 
     //TODO: Make bot pause
     if (playerStay) {
-        if (houseValue < 16) {
+        if (houseValue < 16 || playerValue > houseValue) {
             //Draw Card
             var cardIndex = Util.randomInRange(0, cards.length);
             var card = cards.splice(cardIndex, 1)[0]

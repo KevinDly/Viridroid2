@@ -1,16 +1,7 @@
 MAJOR. WRITE TEST FUNCTIONS
 
-1. Optimize Blackjack Function for less lag
-	1a. Fix bugs
-	1b. Replace text names with emojis
-	1c. Fix text flow (more clarity with playing)
+Add daily quests!
+	yep
 
-2. LATER Write code for betting system.
-3. Create leaderboard
-4. Write test functions
-
-5. Import code to AWS
-6. Add help command
-7. Add json config file for easier configuration.
-
-8. Give Josh 300 Points
+LATER Write code for betting system.
+Create leaderboard
