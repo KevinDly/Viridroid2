@@ -3,6 +3,7 @@ const Constants = require('./constants.js')
 const Games = require('./games.js')
 const config = require('config')
 const Discord = require('discord.js')
+const fs = require('fs')
 
 module.exports =
 {
@@ -93,8 +94,12 @@ function help(msg, tokens, data) {
     //Checks if the command is the default implementation or not
     var embed = new Discord.MessageEmbed().setColor('#f42069')
 
+    console.log(tokens)
+    //TODO: Change where this json is loaded.
+    var variableData = fs.readFileSync('./config/commandlist.json')
+    var parsedData = JSON.parse(variableData)
     if (tokens.length == 0) {
-        var commandList = config.get('Commands')
+        var commandList = parsedData["Commands"]
         embed = embed.setDescription("To see more detailed command descriptions type: \n \"s!help [Command Name] detailed\"")
         for (var command in commandList) {
             embed = embed.addField(commandList[command]["format"], commandList[command]["description"])
@@ -102,11 +107,11 @@ function help(msg, tokens, data) {
 
         msg.channel.send(embed)
     }
-    else if (tokens.length > 1 && tokens[1].toUpperCase() == "DETAILED" && config.has("Commands." + tokens[0].toLowerCase())) {
+    else if (tokens.length > 1 && tokens[1].toUpperCase() == "DETAILED" && parsedData["Commands"].hasOwnProperty(tokens[0].toLowerCase())) {
         //Checks if the command arguments are correct.
-        var commandKey = "Commands." + tokens[0].toLowerCase()
-        var format = config.get(commandKey + ".format")
-        var description = config.has(commandKey + ".detailed") ? config.get(commandKey + ".detailed") : null
+        var format = parsedData["Commands"][tokens[0].toLowerCase()]["format"]
+        var description = parsedData["Commands"][tokens[0].toLowerCase()].hasOwnProperty("detailed") ? parsedData["Commands"][tokens[0].toLowerCase()]["detailed"] : null
+
         embed = embed.setTitle(format)
 
         //Checks if the command has a detailed description or not.

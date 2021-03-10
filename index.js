@@ -137,7 +137,8 @@ client.on('message', async (msg) => {
 		}
 
 		//Check if getOptions returned an empty array or not
-		tokens = Parse.stripQuotes(options["tokens"])
+		var tempTokens = Parse.stripQuotes(options["tokens"])
+		tokens = (tempTokens.length != 0) ? tempTokens : Parse.stripQuotes(tokens)
 
 		//tokens = Parse.parse(tokens)
 		//Check against command list.

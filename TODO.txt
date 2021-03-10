@@ -1,47 +1,7 @@
 MAJOR. WRITE TEST FUNCTIONS
-Rewrite Command Parsing:
-	When a line is input
-	Check if the line is a command
-		If it isnt, end parsing
-	If it is
-		Strip the command of the command prefix
-		Split the line into individual words
-		Remove the command from the array of words
-		Parse the array based on the following:
-			If the word
-				Has - at the start
-					Put it into the array as is (No quotations around the word)
-				Is a singular word
-					Put it into the array with quotations around it
-				Is a word with quotes around it (at the start and end)
-					Put it into the array as is
-				Has quotes at the START of the word but not the end
-					Begin constructing into a phrase as one word
-				Has quotes at the END of the word
-					If we previously began constructing a phrase
-						Put this word in the phrase, then put the phrase in an array
-					Otherwise, put quotes around it
-			If we reach the end of the phrase we are parsing and we havent finished creating the phrase
-				Finish the phrase, put a quote at the end of it, and put the phrase into the array
-		Using the array of words and phrases
-			Check the array for options, and construct an object based on these options
-			When array is done, return an object that contains
-				Another object with key value pairs of options: list of option modifiers
-				A list of the remaining words and phrases that werent an option of related to options
-		Pass the list and the object into the command's function.
-Add poll options
-	-s (Hides poll votes until the end)
-	-t [time] (Sets timer in minutes)
-Test getOptions
 
 Add daily quests!
 	yep
-
-Change how options are parsed in the command
-
-Modify command parsing to look for options.
-Write test functions
-
 
 LATER Write code for betting system.
 Create leaderboard

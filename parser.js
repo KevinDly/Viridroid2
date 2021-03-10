@@ -32,7 +32,7 @@ function getOptions(command, tokens, commandsLocation = './config/commandlist.js
 	}
 
 	try {
-		parsedData = JSON.parse(variableData);
+		parsedData = JSON.parse(variableData)
 	}
 	catch (err) {
 		throw err;
